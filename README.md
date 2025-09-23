@@ -1,8 +1,10 @@
 # SimplesCode
+![Logo](/Logo/SimplesCode-Logo.png)
+<img src="https://github.com/n3333xus/SimplesCode/Logo/SimplesCode-Logo.png" width=50% height=50%>
 
-Repositório do Projeto Integrador — Desenvolvimento de Linguagem de Programação Educacional.
+Repositório do Projeto Integrador
 
-O *SimplesCode* é uma linguagem criada para facilitar o aprendizado de lógica de programação por iniciantes, com sintaxe inspirada em português natural.
+*SimplesCode* é uma linguagem criada para facilitar o aprendizado de lógica de programação por iniciantes, com sintaxe inspirada em português natural.
 
 ---
 
@@ -55,5 +57,3 @@ O *SimplesCode* é uma linguagem criada para facilitar o aprendizado de lógica 
 - Vinicius Santarelli
 
 ---
-
-✨ Projeto desenvolvido no contexto da disciplina de Projeto Integrador.
