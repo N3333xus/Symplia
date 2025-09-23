@@ -1,8 +1,5 @@
-# SimplesCode
-![Logo](/Logo/SimplesCode-Logo.png)
-<img src="https://github.com/n3333xus/SimplesCode/Logo/SimplesCode-Logo.png" width=50% height=50%>
-
-Repositório do Projeto Integrador
+# SimplesCode 
+<img src="https://github.com/N3333xus/SimplesCode/blob/main/Logo/SimplesCode-Logo.png" width=20% height=20%> 
 
 *SimplesCode* é uma linguagem criada para facilitar o aprendizado de lógica de programação por iniciantes, com sintaxe inspirada em português natural.
 
