@@ -1,4 +1,4 @@
-# Symplia 
+# Symplia 🇧🇷
 <img src="https://github.com/N3333xus/Symplia/blob/main/Logo/Symplia-Logo.png" width=30% height=30%> 
 
 ---
@@ -31,7 +31,7 @@ Para explorar todos os recursos da linguagem, acesse nossa documentação detalh
 
 ## Licença
 
-GPL-3.0
+[GPL-3.0](https://pt.wikipedia.org/wiki/GNU_General_Public_License)
 
 ---
 
