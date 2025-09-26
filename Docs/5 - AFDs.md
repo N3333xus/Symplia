@@ -4,7 +4,6 @@
 
 Converter expressões regulares em autômatos finitos determinísticos para implementação eficiente.
 
-🎯 Atividades do Projeto Integrador:
 
 Você implementará algoritmos para converter as expressões regulares da semana anterior em autômatos finitos determinísticos funcionais. Este processo conectará diretamente teoria e prática, mostrando como conceitos matemáticos se materializam em código funcional.
 
@@ -23,7 +22,3 @@ Como decidir qual estratégia de implementação usar? Considere o trade-off ent
     Diagrama de cada AFD;
     Implementação funcional dos AFDs
     Testes unitários para cada autômato individual
-
-👉 Crie um arquivo de diagrama (markdown com mermaid) para AFD. 👉 A entrega é o link para o commit final. 👉 Fique atento aos horários de abertura para entrega e de fechamento da tarefa!!!
-
-😉 Bom trabalho 😉

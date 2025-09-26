@@ -9,7 +9,15 @@
 
 ## Filosofia Central da Linguagem *Symplia*
 
-Reduzir a curva/carga de aprendizado inicial. Enquanto linguagens como Python ou JavaScript, embora consideradas simples, ainda introduzem complexidades como ponto e vírgula, chaves, ou uma sintaxe excessivamente concisa, a linguagem *Symplia* prioriza a legibilidade e a familiaridade para falantes de português brasileiro. A sintaxe é construída para ser uma tradução quase direta de instruções em português para código executável, permitindo que o aluno concentre toda a sua energia na compreensão da lógica da programação sem se perder na complexidade de uma linguagem de alto nivel "comum".
+A Symplia prioriza a legibilidade e familiaridade para falantes de português brasileiro. Sua sintaxe é uma tradução quase direta de instruções em português para código executável, permitindo que iniciantes foquem na lógica de programação sem se perder em complexidades sintáticas.
+
+## Sobre o Mascote
+
+**Capy**, a capivara astronauta, representa perfeitamente o propósito da linguagem *Symplia*:
+
+- Capy = Amigável e Tranquila!
+- Astronauta = Sem Limites para Explorar!
+
 
 ## 👨‍💻 Equipe
 
