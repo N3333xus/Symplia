@@ -48,9 +48,7 @@
 ---
 
 ## 👨‍💻 Equipe
-- Lucas Ravazi
-- Lucas Zurano
-- Mateus Zurano
-- Vinicius Santarelli
+
+- Grupo H.
 
 ---
