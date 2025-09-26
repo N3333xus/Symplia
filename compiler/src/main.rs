@@ -24,8 +24,8 @@ fn main() {
     
     match lexer.tokenize() {
         Ok(tokens) => {
-            println!("{:<20} {:<30}", "TOKEN", "TIPO");
-            println!("{:-<50}", "");
+            println!("{:<20} {:<30} {:<10} {:<10}", "TOKEN", "TIPO", "LINHA", "COLUNA");
+            println!("{:-<70}", "");
 
             for token in tokens {
                 let tipo_desc = match token.token_type {
@@ -37,11 +37,27 @@ fn main() {
                     _ => format!("{:?}", token.token_type).to_uppercase(),
                 };
                 
-                println!("{:<20} {:<30}", token.lexema, tipo_desc);
+                println!("{:<20} {:<30} {:<10} {:<10}", token.lexema, tipo_desc, token.linha, token.coluna);
             }
         }
         Err(err) => {
+            // Obter as linhas do código fonte
+            let lines: Vec<&str> = source_code.split('\n').collect();
+            let linha_erro = err.linha;
+            let coluna_erro = err.coluna;
+
+            // Imprimir a mensagem de erro
             eprintln!("{}", err);
+
+            // Se a linha existir, imprimir a linha e um ponteiro para a coluna
+            if linha_erro <= lines.len() {
+                let linha_texto = lines[linha_erro - 1];
+                eprintln!("{}", linha_texto);
+                // Imprimir espaços até a coluna, depois um ^
+                let espacos = " ".repeat(coluna_erro - 1);
+                eprintln!("{}^", espacos);
+            }
+
             process::exit(1);
         }
     }
