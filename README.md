@@ -1,5 +1,5 @@
 # Symplia 
-<img src="https://github.com/N3333xus/Symplia/blob/main/Logo/Symplia-Logo.png" width=25% height=25%> 
+<img src="https://github.com/N3333xus/Symplia/blob/main/Logo/Symplia-Logo.png" width=30% height=30%> 
 
 ---
 
