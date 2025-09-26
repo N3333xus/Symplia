@@ -25,7 +25,7 @@ A Symplia prioriza a legibilidade e familiaridade para falantes de português br
 ## Documentação da Linguagem
 
 Para explorar todos os recursos da linguagem, acesse nossa documentação detalhada:<br>
-[Documentação Symplia](/Docs/Documentação-Symplia-pt.br.md)
+[Documentação Symplia](/Docs/Documentacao-Symplia-pt-br.md)
 
 ---
 
