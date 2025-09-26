@@ -4,3 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+
+[[bin]]
+name = "symplia"
+path = "src/main.rs"
+
+[lib]
+name = "symplia_compiler"
+path = "src/lib.rs"

@@ -23,6 +23,7 @@ pub enum TokenType {
     Falso,
     Escreva,
     Leia,
+    Principal,
 
     // Identificadores e literais
     Identificador(String),
@@ -48,8 +49,8 @@ pub enum TokenType {
     NaoLogico,
 
     // Delimitadores
-    ParenteseEsquerda,
-    ParenteseDireita,
+    ParenteseEsquerdo,
+    ParenteseDireito,
     ChaveEsquerda,
     ChaveDireita,
     ColcheteEsquerdo,
@@ -63,12 +64,6 @@ pub enum TokenType {
     EOF,
 }
 
-impl TokenType {
-    pub fn descricao(&self) -> String {
-        // Implementação como acima
-    }
-}
-
 #[derive(Debug, Clone)]
 pub struct Token {
     pub token_type: TokenType,
@@ -78,12 +73,16 @@ pub struct Token {
 }
 
 impl Token {
-    pub fn eof(linha: usize, coluna: usize) -> Self {
+    pub fn new(token_type: TokenType, linha: usize, coluna: usize, lexema: String) -> Self {
         Self {
-            token_type: TokenType::EOF,
+            token_type,
             linha,
             coluna,
-            lexema: "".to_string(),
+            lexema,
         }
+    }
+
+    pub fn eof(linha: usize, coluna: usize) -> Self {
+        Self::new(TokenType::EOF, linha, coluna, "".to_string())
     }
 }

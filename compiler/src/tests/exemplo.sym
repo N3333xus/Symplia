@@ -1,0 +1,20 @@
+// Exemplo de programa em Symplia
+funcao principal() {
+    inteiro idade = 25
+    decimal altura = 1.75
+    texto nome = "João Silva"
+    logico estudante = verdadeiro
+
+    se idade >= 18 entao {
+        escreva(nome, " é maior de idade.")
+    } senao {
+        escreva(nome, " é menor de idade.")
+    } fimse
+    
+    // Loop simples
+    inteiro i = 0
+    enquanto i < 5 faca {
+        escreva("Contagem: ", i)
+        i = i + 1
+    } fimenquanto
+}
