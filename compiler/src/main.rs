@@ -46,14 +46,12 @@ fn main() {
             let linha_erro = err.linha;
             let coluna_erro = err.coluna;
 
-            // Imprimir a mensagem de erro
             eprintln!("{}", err);
 
-            // Se a linha existir, imprimir a linha e um ponteiro para a coluna
             if linha_erro <= lines.len() {
                 let linha_texto = lines[linha_erro - 1];
                 eprintln!("{}", linha_texto);
-                // Imprimir espaços até a coluna, depois um ^
+                
                 let espacos = " ".repeat(coluna_erro - 1);
                 eprintln!("{}^", espacos);
             }
