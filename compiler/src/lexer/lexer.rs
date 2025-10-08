@@ -43,7 +43,7 @@ impl Lexer {
         let char = self.current_char();
 
         match char {
-            // Strings
+            // Stringss
             '"' => self.consume_string(),
 
             // Números

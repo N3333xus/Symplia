@@ -1,4 +1,4 @@
-use super::token::{Token, TokenType};
+/*use super::token::{Token, TokenType};
 use super::error::LexerError;
 
 pub struct Lexer {
@@ -49,7 +49,7 @@ impl Lexer {
             // Números
             '0'..='9' => self.consume_number(),
 
-            // Operadores e delimitadores
+            // Operadores e delimitadoress
             '+' => self.single_char_token(TokenType::Mais),
             '-' => self.single_char_token(TokenType::Menos),
             '*' => self.single_char_token(TokenType::Multiplicacao),
@@ -330,4 +330,4 @@ impl Lexer {
             _ => None,
         }
     }
-}
+}*/
