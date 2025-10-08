@@ -1,7 +1,7 @@
 # AFDs Finais
 
 1. AFD para Identificadores e Palavras-Chave
-```
+```mermaid
 stateDiagram-v2
     direction LR
     [*] --> q0_id
@@ -11,7 +11,7 @@ stateDiagram-v2
 ```
 
 2. AFD para Números (Inteiros e Decimais)
-```
+```mermaid
 stateDiagram-v2
     direction LR
     [*] --> q0_num
@@ -25,7 +25,7 @@ stateDiagram-v2
 ```
 
 3. AFD para Strings
-```
+```mermaid
 stateDiagram-v2
     direction LR
     [*] --> q0_str
@@ -38,7 +38,7 @@ stateDiagram-v2
 ```
 
 4. AFD para Comentários de Linha
-```
+```mermaid
 stateDiagram-v2
     direction LR
     [*] --> q0_comm
@@ -50,7 +50,7 @@ stateDiagram-v2
 ```
 
 5. AFD para Comentários de Bloco
-```
+```mermaid
 stateDiagram-v2
     direction LR
     [*] --> q0_bcomm
@@ -64,7 +64,7 @@ stateDiagram-v2
 ```
 
 6. AFD para Operadores Compostos
-```
+```mermaid
 stateDiagram-v2
     direction LR
     [*] --> q0_op
@@ -97,7 +97,7 @@ stateDiagram-v2
     q12_or --> [*] : "||"
 ```
 7. AFD Completo - Visão Geral dos Tokens
-```
+```mermaid
 stateDiagram-v2
     direction LR
     [*] --> Inicio
@@ -120,7 +120,7 @@ stateDiagram-v2
     }
 ```
 8. AFD para Sequência de Escape em Strings
-```
+```mermaid
 stateDiagram-v2
     direction LR
     [*] --> q0_escape
@@ -131,7 +131,7 @@ stateDiagram-v2
 ```
 
 9. Diagrama de Transição entre Estados do Lexer
-```
+```mermaid
 stateDiagram-v2
     [*] --> InicioToken
     InicioToken --> ProcessandoToken : Caractere válido
