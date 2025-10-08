@@ -25,6 +25,10 @@ impl LexerError {
     pub fn invalid_escape(c: char, linha: usize, coluna: usize) -> Self {
         Self::new(format!("Sequência de escape inválida: '\\{}'", c), linha, coluna)
     }
+
+    pub fn unclosed_comment(linha: usize, coluna: usize) -> Self {
+        Self::new("Comentário de bloco não foi fechado".to_string(), linha, coluna)
+    }
 }
 
 impl std::fmt::Display for LexerError {

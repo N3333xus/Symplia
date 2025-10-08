@@ -1,4 +1,5 @@
-// Exemplo de programa em Symplia
+// programa em Symplia
+
 funcao principal() {
     inteiro idade = 25
     decimal altura = 1.75

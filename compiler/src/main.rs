@@ -28,34 +28,24 @@ fn main() {
             println!("{:-<70}", "");
 
             for token in tokens {
-                let tipo_desc = match token.token_type {
-                    symplia_compiler::lexer::token::TokenType::Identificador(_) => "IDENTIFICADOR".to_string(),
-                    symplia_compiler::lexer::token::TokenType::InteiroLiteral(_) => "INTEIRO_LITERAL".to_string(),
-                    symplia_compiler::lexer::token::TokenType::DecimalLiteral(_) => "DECIMAL_LITERAL".to_string(),
-                    symplia_compiler::lexer::token::TokenType::StringLiteral(_) => "STRING_LITERAL".to_string(),
+                let tipo_desc = match &token.token_type {
+                    symplia_compiler::lexer::token::TokenType::Identificador(s) => format!("IDENTIFICADOR({})", s),
+                    symplia_compiler::lexer::token::TokenType::InteiroLiteral(n) => format!("INTEIRO_LITERAL({})", n),
+                    symplia_compiler::lexer::token::TokenType::DecimalLiteral(n) => format!("DECIMAL_LITERAL({})", n),
+                    symplia_compiler::lexer::token::TokenType::StringLiteral(s) => format!("STRING_LITERAL(\"{}\")", s),
                     symplia_compiler::lexer::token::TokenType::EOF => "FIM_DE_ARQUIVO".to_string(),
                     _ => format!("{:?}", token.token_type).to_uppercase(),
                 };
                 
-                println!("{:<20} {:<30} {:<10} {:<10}", token.lexema, tipo_desc, token.linha, token.coluna);
+                println!("{:<20} {:<30} {:<10} {:<10}", 
+                    token.lexema, 
+                    tipo_desc,
+                    token.linha,
+                    token.coluna);
             }
         }
         Err(err) => {
-            // Obter as linhas do código fonte
-            let lines: Vec<&str> = source_code.split('\n').collect();
-            let linha_erro = err.linha;
-            let coluna_erro = err.coluna;
-
             eprintln!("{}", err);
-
-            if linha_erro <= lines.len() {
-                let linha_texto = lines[linha_erro - 1];
-                eprintln!("{}", linha_texto);
-                
-                let espacos = " ".repeat(coluna_erro - 1);
-                eprintln!("{}^", espacos);
-            }
-
             process::exit(1);
         }
     }
