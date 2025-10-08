@@ -48,7 +48,7 @@ pub enum TokenType {
     OuLogico,
     NaoLogico,
 
-    // Delimitadores
+    // Delimitadoress
     ParenteseEsquerdo,
     ParenteseDireito,
     ChaveEsquerda,
@@ -60,7 +60,6 @@ pub enum TokenType {
     PontoEVirgula,
     DoisPontos,
 
-    // Fim de arquivo
     EOF,
 }
 

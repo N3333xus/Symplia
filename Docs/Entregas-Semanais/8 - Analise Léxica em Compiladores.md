@@ -1,13 +1,13 @@
 # AFDs Finais
 
 1. AFD para Identificadores e Palavras-Chave
+
 ```mermaid
 stateDiagram-v2
-    direction LR
-    [*] --> q0_id
-    q0_id --> q1_id : Letra ou "_"
-    q1_id --> q1_id : Letra, Dígito ou "_"
-    q1_id --> [*] : Qualquer outro caractere
+    A([*]) --> B{q0_id}
+    B -- Letra ou '_' --> C[q1_id]
+    C -- Letra, Dígito ou '_' --> C
+    C -- Qualquer outro caractere --> D([*])
 ```
 
 2. AFD para Números (Inteiros e Decimais)

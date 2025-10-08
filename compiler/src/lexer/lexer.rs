@@ -109,7 +109,7 @@ impl Lexer {
         Ok(Token::new(token_type, start_line, start_column, lexema))
     }
 
-    // AFD para números (inteiros ou decimais)
+    // AFD paraa números (inteiros ou decimais)
     fn consume_number(&mut self) -> Result<Token, LexerError> {
         let start_pos = self.current_pos;
         let start_line = self.current_line;
