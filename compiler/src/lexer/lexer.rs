@@ -23,7 +23,6 @@ impl Lexer {
         }
     }
 
-    // Interface principal para obter todos os tokens
     pub fn tokenize(&mut self) -> Result<Vec<Token>, LexerError> {
         let mut tokens = Vec::new();
         self.reset();
@@ -36,7 +35,6 @@ impl Lexer {
         Ok(tokens)
     }
 
-    // Interface para o parser - fornece tokens sob demanda
     pub fn next_token_for_parser(&mut self) -> Result<Token, LexerError> {
         if let Some(token) = self.lookahead_buffer.pop_front() {
             Ok(token)
@@ -46,7 +44,6 @@ impl Lexer {
         }
     }
 
-    // Lookahead para análise sintática
     pub fn peek(&mut self, k: usize) -> Result<Option<&Token>, LexerError> {
         while self.lookahead_buffer.len() <= k {
             match self.next_token_internal()? {
@@ -58,7 +55,6 @@ impl Lexer {
         Ok(self.lookahead_buffer.get(k))
     }
 
-    // Consome token atual (para parser)
     pub fn consume(&mut self) -> Result<Option<Token>, LexerError> {
         if let Some(token) = self.lookahead_buffer.pop_front() {
             Ok(Some(token))
@@ -67,7 +63,6 @@ impl Lexer {
         }
     }
 
-    // Verifica se próximo token é de determinado tipo
     pub fn expect(&mut self, expected_type: TokenType) -> Result<bool, LexerError> {
         if let Some(next_token) = self.peek(0)? {
             Ok(next_token.token_type == expected_type)
@@ -76,7 +71,6 @@ impl Lexer {
         }
     }
 
-    /// Reinicia o lexer para reutilização
     pub fn reset(&mut self) {
         self.current_pos = 0;
         self.current_line = 1;
@@ -85,7 +79,6 @@ impl Lexer {
         self.lookahead_buffer.clear();
     }
 
-    /// Obtém todos os tokens (para debugging)
     pub fn get_all_tokens(&mut self) -> Result<Vec<Token>, LexerError> {
         self.tokenize()
     }
@@ -93,10 +86,9 @@ impl Lexer {
     // --- IMPLEMENTAÇÃO INTERNA DOS AFDs ---
 
     fn next_token_internal(&mut self) -> Result<Option<Token>, LexerError> {
-        // Pular espaços em branco
+
         self.skip_whitespace();
         
-        // Fim do arquivo
         if self.current_pos >= self.source.len() {
             return Ok(None);
         }
@@ -104,7 +96,7 @@ impl Lexer {
         let start_line = self.current_line;
         let start_column = self.current_column;
         
-        // Aplicar princípio do match mais longo
+        // aplicacao do princípio do match mais longo
         if let Some(_token) = self.try_consume_comment()? {
             // Comentários são ignorados, chama recursivamente
             return self.next_token_internal();
@@ -121,7 +113,7 @@ impl Lexer {
         } else if let Some(token) = self.try_consume_identifier()? {
             Ok(Some(token))
         } else {
-            // Caractere inválido - recuperação automática
+            // caractere invalido = recuperacao automatica
             let char_invalido = self.current_char();
             let erro = LexerError::with_recovery_suggestion(
                 format!("Caractere inválido: '{}'", char_invalido),
@@ -129,9 +121,8 @@ impl Lexer {
                 start_column,
                 "Tente usar apenas caracteres válidos da linguagem Symplia".to_string(),
             );
-            
-            // Recuperação: avança o caractere inválido e continua
-            self.advance(); // ✅ AGORA funciona porque estamos dentro do lexer
+
+            self.advance(); // AGORA funciona porque estamos dentro do lexer
             Err(erro)
         }
     }
