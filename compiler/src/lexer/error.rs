@@ -1,13 +1,28 @@
+#[derive(Debug, Clone, PartialEq)]
+pub enum ErrorSeverity {
+    Warning,    // continua a analise
+    Error,      // parar a análise
+    Fatal,      // erro irrecuperável
+}
+
 #[derive(Debug, Clone)]
 pub struct LexerError {
     pub message: String,
     pub linha: usize,
     pub coluna: usize,
+    pub severity: ErrorSeverity,
+    pub recovery_suggestion: String,
 }
 
 impl LexerError {
     pub fn new(message: String, linha: usize, coluna: usize) -> Self {
-        Self { message, linha, coluna }
+        Self {
+            message,
+            linha,
+            coluna,
+            severity: ErrorSeverity::Error,
+            recovery_suggestion: String::new(),
+        }
     }
 
     pub fn invalid_char(c: char, linha: usize, coluna: usize) -> Self {
@@ -29,6 +44,22 @@ impl LexerError {
     pub fn unclosed_comment(linha: usize, coluna: usize) -> Self {
         Self::new("Comentário de bloco não foi fechado".to_string(), linha, coluna)
     }
+
+    pub fn with_recovery_suggestion(
+        message: String, 
+        linha: usize, 
+        coluna: usize,
+        suggestion: String
+    ) -> Self {
+        Self {
+            message,
+            linha,
+            coluna,
+            severity: ErrorSeverity::Error,
+            recovery_suggestion: suggestion,
+        }
+    }
+
 }
 
 impl std::fmt::Display for LexerError {

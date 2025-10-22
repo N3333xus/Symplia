@@ -24,8 +24,8 @@ fn main() {
     
     match lexer.tokenize() {
         Ok(tokens) => {
-            println!("{:<20} {:<30} {:<10} {:<10}", "TOKEN", "TIPO", "LINHA", "COLUNA");
-            println!("{:-<70}", "");
+            println!("{:<20} {:<30} {:<10} {:<10} {:<10}", "TOKEN", "TIPO", "LINHA", "COLUNA", "COMPRIMENTO");
+            println!("{:-<80}", "");
 
             for token in tokens {
                 let tipo_desc = match &token.token_type {
@@ -37,11 +37,12 @@ fn main() {
                     _ => format!("{:?}", token.token_type).to_uppercase(),
                 };
                 
-                println!("{:<20} {:<30} {:<10} {:<10}", 
+                println!("{:<20} {:<30} {:<10} {:<10} {:<10}", 
                     token.lexema, 
                     tipo_desc,
                     token.linha,
-                    token.coluna);
+                    token.coluna,
+                    token.comprimento);
             }
         }
         Err(err) => {

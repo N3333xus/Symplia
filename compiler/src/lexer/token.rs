@@ -1,6 +1,6 @@
 #[derive(Debug, Clone, PartialEq)]
 pub enum TokenType {
-    // Palavras-chave
+
     Se,
     Entao,
     Senao,
@@ -25,13 +25,11 @@ pub enum TokenType {
     Leia,
     Principal,
 
-    // Identificadores e literais
     Identificador(String),
     InteiroLiteral(i64),
     DecimalLiteral(f64),
     StringLiteral(String),
 
-    // Operadores
     Mais,
     Menos,
     Multiplicacao,
@@ -48,7 +46,6 @@ pub enum TokenType {
     OuLogico,
     NaoLogico,
 
-    // Delimitadoress
     ParenteseEsquerdo,
     ParenteseDireito,
     ChaveEsquerda,
@@ -66,22 +63,37 @@ pub enum TokenType {
 #[derive(Debug, Clone)]
 pub struct Token {
     pub token_type: TokenType,
+    pub lexema: String,
     pub linha: usize,
     pub coluna: usize,
-    pub lexema: String,
+    pub comprimento: usize,
 }
 
 impl Token {
-    pub fn new(token_type: TokenType, linha: usize, coluna: usize, lexema: String) -> Self {
+    pub fn new(token_type: TokenType, lexema: String, linha: usize, coluna: usize) -> Self {
+        let comprimento = lexema.chars().count();
         Self {
             token_type,
+            lexema,
             linha,
             coluna,
-            lexema,
+            comprimento,
         }
     }
 
     pub fn eof(linha: usize, coluna: usize) -> Self {
-        Self::new(TokenType::EOF, linha, coluna, "".to_string())
+        Self::new(TokenType::EOF, "".to_string(), linha, coluna)
+    }
+
+    pub fn is_eof(&self) -> bool {
+        matches!(self.token_type, TokenType::EOF)
+    }
+
+    pub fn valor_numerico(&self) -> Option<f64> {
+        match &self.token_type {
+            TokenType::InteiroLiteral(n) => Some(*n as f64),
+            TokenType::DecimalLiteral(n) => Some(*n),
+            _ => None,
+        }
     }
 }
