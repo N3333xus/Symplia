@@ -137,16 +137,31 @@ impl Parser {
     }
 
     fn sync_recovery(&mut self, sync_tokens: &[TokenType]) {
-        while !self.check_any(sync_tokens) && !self.check(&TokenType::EOF) {
+        let mut recovery_count = 0;
+        let max_recovery_attempts = 50;
+        
+        while !self.check_any(sync_tokens) 
+            && !self.check(&TokenType::EOF) 
+            && recovery_count < max_recovery_attempts {
+            
             if let Err(_) = self.advance() {
                 break;
+            }
+            recovery_count += 1;
+        }
+        
+        if recovery_count >= max_recovery_attempts {
+            while !self.check(&TokenType::EOF) {
+                if let Err(_) = self.advance() {
+                    break;
+                }
             }
         }
     }
 
-    // === MÉTODOS DE PARSING PRINCIPAIS ===
+    // === MÉTODOS DE PARSING PRINCIPAIS 
 
-    pub fn parse_program(&mut self) -> Result<Program, Vec<ParserError>> {
+    pub fn parse_program(&mut self) -> Result<Program, Vec<ParserError>> { // correção de outro motivo de memory leaksss
         let mut functions = Vec::new();
         let mut statements = Vec::new();
 
@@ -156,6 +171,9 @@ impl Parser {
                     Ok(func) => functions.push(func),
                     Err(e) => {
                         self.errors.push(e);
+                        if let Err(_) = self.advance() {
+                            break; 
+                        }
                         self.sync_recovery(&[TokenType::Funcao, TokenType::EOF]);
                     }
                 }
@@ -164,6 +182,10 @@ impl Parser {
                     Ok(stmt) => statements.push(stmt),
                     Err(e) => {
                         self.errors.push(e);
+                        // Avançar pelo menos um token para evitar loop infinito
+                        if let Err(_) = self.advance() {
+                            break; // Se não conseguirmos avançar, sair do loop
+                        }
                         self.sync_recovery(&[
                             TokenType::Funcao, TokenType::Inteiro, TokenType::Decimal, 
                             TokenType::Texto, TokenType::Logico, TokenType::EOF
@@ -180,11 +202,9 @@ impl Parser {
         }
     }
 
-    // declaracao_funcao ::= "funcao" tipo? identificador "(" parametros? ")" bloco
     fn parse_function_decl(&mut self) -> Result<FunctionDecl, ParserError> {
         self.consume(TokenType::Funcao)?;
 
-        // Tipo de retorno (opcional)
         let return_type = if self.check_any(&[TokenType::Inteiro, TokenType::Decimal, 
                                             TokenType::Texto, TokenType::Logico]) {
             Some(self.parse_type()?)
@@ -209,12 +229,10 @@ impl Parser {
 
         self.consume(TokenType::ParenteseEsquerdo)?;
         
-        // Parâmetros
         let parameters = self.parse_parameters()?;
         
         self.consume(TokenType::ParenteseDireito)?;
         
-        // Corpo da função
         let body = self.parse_block()?;
 
         Ok(FunctionDecl {
@@ -225,7 +243,6 @@ impl Parser {
         })
     }
 
-    // parametros ::= parametro ("," parametro)*
     fn parse_parameters(&mut self) -> Result<Vec<Parameter>, ParserError> {
         let mut parameters = Vec::new();
 
@@ -242,7 +259,6 @@ impl Parser {
         Ok(parameters)
     }
 
-    // parametro ::= tipo identificador
     fn parse_parameter(&mut self) -> Result<Parameter, ParserError> {
         let param_type = self.parse_type()?;
         
@@ -546,7 +562,6 @@ impl Parser {
         Ok(left)
     }
 
-    // termo ::= termo ("*" | "/" | "%") fator | fator
     fn parse_multiplicative(&mut self) -> Result<Expr, ParserError> {
         let mut left = self.parse_unary()?;
 

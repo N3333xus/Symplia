@@ -26,14 +26,12 @@ fn main() {
     println!("Arquivo: {}", filename);
     println!("Tamanho do código: {} caracteres\n", source_code.len());
     
-    // Fase de análise léxica
-    println!("=== FASE LÉXICA ===");
+    println!("=== ANALISE LEXICA ===");
     let mut lexer = Lexer::new(&source_code);
     match lexer.tokenize() {
         Ok(tokens) => {
             println!("Tokens reconhecidos: {}", tokens.len());
             
-            // Mostrar primeiros 20 tokens para debug
             for (i, token) in tokens.iter().take(20).enumerate() {
                 println!("  {}: {}", i, token);
             }
@@ -47,8 +45,7 @@ fn main() {
         }
     }
     
-    // Fase de análise sintática
-    println!("\n=== FASE SINTÁTICA ===");
+    println!("\n=== ANALISE SINTÁTICA ===");
     match Parser::parse_from_source(&source_code) {
         Ok(program) => {
             println!("✅ Análise sintática concluída com sucesso!");

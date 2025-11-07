@@ -35,12 +35,14 @@ impl Lexer {
         Ok(tokens)
     }
 
-    pub fn next_token_for_parser(&mut self) -> Result<Token, LexerError> {
+    pub fn next_token_for_parser(&mut self) -> Result<Token, LexerError> { // correção de possssivel memory leak
         if let Some(token) = self.lookahead_buffer.pop_front() {
             Ok(token)
         } else {
-            self.next_token_internal()?
-                .ok_or_else(|| LexerError::new("Fim de arquivo inesperado".to_string(), 0, 0))
+            match self.next_token_internal()? {
+                Some(token) => Ok(token),
+                None => Ok(Token::eof(self.current_line, self.current_column))
+            }
         }
     }
 
@@ -413,6 +415,7 @@ impl Lexer {
 
     fn classify_keyword(&self, lexema: &str) -> Option<TokenType> {
         match lexema {
+            // Palavras-chave SEM acentos (como definido no seu TokenType)
             "se" => Some(TokenType::Se),
             "entao" => Some(TokenType::Entao),
             "senao" => Some(TokenType::Senao),
