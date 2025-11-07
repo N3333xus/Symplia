@@ -1,5 +1,5 @@
 [package]
-name = "symplia-compiler"
+name = "compiler"
 version = "0.1.0"
 edition = "2024"
 
@@ -10,5 +10,5 @@ name = "symplia"
 path = "src/main.rs"
 
 [lib]
-name = "symplia_compiler"
+name = "compiler"
 path = "src/lib.rs"

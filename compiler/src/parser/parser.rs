@@ -1,9 +1,9 @@
-// compiler/src/parser.rs
+// src/parser/parser.rs
 use crate::lexer::{Lexer, Token, TokenType};
-use crate::ast::*;
+use crate::parser::ast::*;
 use std::collections::VecDeque;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ParserError {
     pub message: String,
     pub linha: usize,
@@ -40,6 +40,7 @@ pub struct Parser {
     lexer: Lexer,
     current_token: Token,
     errors: Vec<ParserError>,
+    lookahead_buffer: VecDeque<Token>,
 }
 
 impl Parser {
@@ -56,20 +57,25 @@ impl Parser {
             lexer,
             current_token,
             errors: Vec::new(),
+            lookahead_buffer: VecDeque::new(),
         })
     }
 
     // === MÉTODOS AUXILIARES ===
 
     fn advance(&mut self) -> Result<(), ParserError> {
-        self.current_token = self.lexer.next_token_for_parser()
-            .map_err(|e| ParserError::new(
-                e.to_string(),
-                self.current_token.linha,
-                self.current_token.coluna,
-                vec![],
-                self.current_token.token_type.clone()
-            ))?;
+        if let Some(token) = self.lookahead_buffer.pop_front() {
+            self.current_token = token;
+        } else {
+            self.current_token = self.lexer.next_token_for_parser()
+                .map_err(|e| ParserError::new(
+                    e.to_string(),
+                    self.current_token.linha,
+                    self.current_token.coluna,
+                    vec![],
+                    self.current_token.token_type.clone()
+                ))?;
+        }
         Ok(())
     }
 
@@ -82,7 +88,7 @@ impl Parser {
                 format!("Token inesperado"),
                 self.current_token.linha,
                 self.current_token.coluna,
-                vec![expected],
+                vec![expected.clone()],
                 self.current_token.token_type.clone()
             );
             self.errors.push(error.clone());
@@ -90,15 +96,15 @@ impl Parser {
         }
     }
 
-    fn check(&self, expected: TokenType) -> bool {
-        self.current_token.token_type == expected
+    fn check(&self, expected: &TokenType) -> bool {
+        &self.current_token.token_type == expected
     }
 
     fn check_any(&self, expected: &[TokenType]) -> bool {
-        expected.iter().any(|t| self.current_token.token_type == *t)
+        expected.iter().any(|t| &self.current_token.token_type == t)
     }
 
-    fn expect(&mut self, expected: TokenType) -> bool {
+    fn expect(&mut self, expected: &TokenType) -> bool {
         if self.check(expected) {
             true
         } else {
@@ -106,7 +112,7 @@ impl Parser {
                 format!("Token inesperado"),
                 self.current_token.linha,
                 self.current_token.coluna,
-                vec![expected],
+                vec![expected.clone()],
                 self.current_token.token_type.clone()
             );
             self.errors.push(error);
@@ -114,8 +120,24 @@ impl Parser {
         }
     }
 
+    fn peek(&mut self, k: usize) -> Result<TokenType, ParserError> {
+        while self.lookahead_buffer.len() <= k {
+            let token = self.lexer.next_token_for_parser()
+                .map_err(|e| ParserError::new(
+                    e.to_string(),
+                    self.current_token.linha,
+                    self.current_token.coluna,
+                    vec![],
+                    self.current_token.token_type.clone()
+                ))?;
+            self.lookahead_buffer.push_back(token);
+        }
+        
+        Ok(self.lookahead_buffer[k].token_type.clone())
+    }
+
     fn sync_recovery(&mut self, sync_tokens: &[TokenType]) {
-        while !self.check_any(sync_tokens) && !self.check(TokenType::EOF) {
+        while !self.check_any(sync_tokens) && !self.check(&TokenType::EOF) {
             if let Err(_) = self.advance() {
                 break;
             }
@@ -128,8 +150,8 @@ impl Parser {
         let mut functions = Vec::new();
         let mut statements = Vec::new();
 
-        while !self.check(TokenType::EOF) {
-            if self.check(TokenType::Funcao) {
+        while !self.check(&TokenType::EOF) {
+            if self.check(&TokenType::Funcao) {
                 match self.parse_function_decl() {
                     Ok(func) => functions.push(func),
                     Err(e) => {
@@ -142,8 +164,10 @@ impl Parser {
                     Ok(stmt) => statements.push(stmt),
                     Err(e) => {
                         self.errors.push(e);
-                        self.sync_recovery(&[TokenType::Funcao, TokenType::Inteiro, TokenType::Decimal, 
-                                           TokenType::Texto, TokenType::Logico, TokenType::EOF]);
+                        self.sync_recovery(&[
+                            TokenType::Funcao, TokenType::Inteiro, TokenType::Decimal, 
+                            TokenType::Texto, TokenType::Logico, TokenType::EOF
+                        ]);
                     }
                 }
             }
@@ -209,7 +233,7 @@ impl Parser {
                            TokenType::Texto, TokenType::Logico]) {
             parameters.push(self.parse_parameter()?);
 
-            while self.check(TokenType::Virgula) {
+            while self.check(&TokenType::Virgula) {
                 self.advance()?; // Consome a vírgula
                 parameters.push(self.parse_parameter()?);
             }
@@ -245,15 +269,16 @@ impl Parser {
 
         let mut statements = Vec::new();
 
-        while !self.check(TokenType::ChaveDireita) && !self.check(TokenType::EOF) {
+        while !self.check(&TokenType::ChaveDireita) && !self.check(&TokenType::EOF) {
             match self.parse_statement_or_declaration() {
                 Ok(stmt) => statements.push(stmt),
                 Err(e) => {
                     self.errors.push(e);
-                    self.sync_recovery(&[TokenType::ChaveDireita, TokenType::Inteiro, 
-                                       TokenType::Decimal, TokenType::Texto, TokenType::Logico,
-                                       TokenType::Se, TokenType::Enquanto, TokenType::Para,
-                                       TokenType::Retorne, TokenType::Escreva, TokenType::Leia]);
+                    self.sync_recovery(&[
+                        TokenType::ChaveDireita, TokenType::Inteiro, TokenType::Decimal, 
+                        TokenType::Texto, TokenType::Logico, TokenType::Se, TokenType::Enquanto, 
+                        TokenType::Para, TokenType::Retorne, TokenType::Escreva, TokenType::Leia
+                    ]);
                 }
             }
         }
@@ -303,7 +328,7 @@ impl Parser {
             ));
         };
 
-        let initializer = if self.check(TokenType::Atribuicao) {
+        let initializer = if self.check(&TokenType::Atribuicao) {
             self.advance()?; // Consome "="
             Some(self.parse_expression()?)
         } else {
@@ -333,7 +358,7 @@ impl Parser {
         self.consume(TokenType::Entao)?;
         let then_branch = self.parse_block()?;
 
-        let else_branch = if self.check(TokenType::Senao) {
+        let else_branch = if self.check(&TokenType::Senao) {
             self.advance()?;
             Some(self.parse_block()?)
         } else {
@@ -398,7 +423,7 @@ impl Parser {
     fn parse_return_stmt(&mut self) -> Result<ReturnStmt, ParserError> {
         self.consume(TokenType::Retorne)?;
 
-        let value = if !self.check(TokenType::PontoEVirgula) {
+        let value = if !self.check(&TokenType::PontoEVirgula) {
             Some(self.parse_expression()?)
         } else {
             None
@@ -442,10 +467,11 @@ impl Parser {
     fn parse_logical_or(&mut self) -> Result<Expr, ParserError> {
         let mut left = self.parse_logical_and()?;
 
-        while self.check(TokenType::OuLogico) {
+        while self.check(&TokenType::OuLogico) {
+            let op = BinaryOperator::Or;
             self.advance()?;
             let right = self.parse_logical_and()?;
-            left = Expr::BinaryOp(BinaryOperator::Or, Box::new(left), Box::new(right));
+            left = Expr::BinaryOp(op, Box::new(left), Box::new(right));
         }
 
         Ok(left)
@@ -454,10 +480,11 @@ impl Parser {
     fn parse_logical_and(&mut self) -> Result<Expr, ParserError> {
         let mut left = self.parse_equality()?;
 
-        while self.check(TokenType::ELogico) {
+        while self.check(&TokenType::ELogico) {
+            let op = BinaryOperator::And;
             self.advance()?;
             let right = self.parse_equality()?;
-            left = Expr::BinaryOp(BinaryOperator::And, Box::new(left), Box::new(right));
+            left = Expr::BinaryOp(op, Box::new(left), Box::new(right));
         }
 
         Ok(left)
@@ -586,7 +613,7 @@ impl Parser {
                 self.advance()?;
 
                 // Verifica se é chamada de função
-                if self.check(TokenType::ParenteseEsquerdo) {
+                if self.check(&TokenType::ParenteseEsquerdo) {
                     self.consume(TokenType::ParenteseEsquerdo)?;
                     let arguments = self.parse_arguments()?;
                     self.consume(TokenType::ParenteseDireito)?;
@@ -623,10 +650,10 @@ impl Parser {
     fn parse_arguments(&mut self) -> Result<Vec<Expr>, ParserError> {
         let mut arguments = Vec::new();
 
-        if !self.check(TokenType::ParenteseDireito) {
+        if !self.check(&TokenType::ParenteseDireito) {
             arguments.push(self.parse_expression()?);
 
-            while self.check(TokenType::Virgula) {
+            while self.check(&TokenType::Virgula) {
                 self.advance()?;
                 arguments.push(self.parse_expression()?);
             }
@@ -672,14 +699,20 @@ impl Parser {
     pub fn has_errors(&self) -> bool {
         !self.errors.is_empty()
     }
-}
 
-// Implementação de traits úteis
-impl Parser {
+    // Método utilitário para parsing direto de fonte
     pub fn parse_from_source(source: &str) -> Result<Program, Vec<ParserError>> {
         let lexer = Lexer::new(source);
         let mut parser = Parser::new(lexer)
             .map_err(|e| vec![e])?;
         parser.parse_program()
+    }
+}
+
+// Implementações de Debug para facilitar testes
+impl std::fmt::Debug for Parser {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "Parser{{current_token: {:?}, errors: {}}}", 
+               self.current_token, self.errors.len())
     }
 }

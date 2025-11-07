@@ -69,6 +69,17 @@ pub struct Token {
     pub comprimento: usize,
 }
 
+// Adicione esta implementação no arquivo lexer/token.rs
+impl std::fmt::Display for Token {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(
+            f, 
+            "Token({:?}, linha: {}, coluna: {})", 
+            self.token_type, self.linha, self.coluna
+        )
+    }
+}
+
 impl Token {
     pub fn new(token_type: TokenType, lexema: String, linha: usize, coluna: usize) -> Self {
         let comprimento = lexema.chars().count();
@@ -97,3 +108,4 @@ impl Token {
         }
     }
 }
+

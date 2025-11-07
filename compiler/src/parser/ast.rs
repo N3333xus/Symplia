@@ -1,4 +1,6 @@
 // ast.rs
+use std::fmt;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Literal {
     Inteiro(i64),
@@ -140,6 +142,15 @@ pub struct Program {
 }
 
 // Implementações de Display para debugging
+
+
+// No arquivo ast.rs, modifique temporariamente a implementação de Display para Program:
+impl fmt::Display for Program {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:#?}", self) // Usa Debug format em vez de Display
+    }
+}
+
 impl std::fmt::Display for Literal {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {

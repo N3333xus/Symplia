@@ -1,0 +1,19 @@
+função inteiro soma(inteiro a, inteiro b) {
+    retorne a + b;
+}
+
+inteiro principal() {
+    inteiro x = 10;
+    inteiro y = 20;
+    inteiro resultado = soma(x, y);
+    
+    escreva("Resultado: ", resultado);
+    
+    se resultado > 15 então {
+        escreva("Maior que 15");
+    } senao {
+        escreva("Menor ou igual a 15");
+    } fimse
+    
+    retorne 0;
+}
