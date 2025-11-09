@@ -1,7 +1,9 @@
-pub mod token;
+pub mod afds;
 pub mod error;
 pub mod lexer;
+pub mod token;
 
-pub use token::{Token, TokenType};
-pub use error::{LexerError, ErrorSeverity};
+// Re-export para facilitar o acesso
+pub use error::LexerError;
 pub use lexer::Lexer;
+pub use token::{Token, TokenType};

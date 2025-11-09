@@ -69,7 +69,6 @@ pub struct Token {
     pub comprimento: usize,
 }
 
-// Adicione esta implementação no arquivo lexer/token.rs
 impl std::fmt::Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         write!(

@@ -9,20 +9,11 @@
 
 ## Filosofia Central da Linguagem *Symplia*
 
-A Symplia prioriza a legibilidade e familiaridade para falantes de português brasileiro. Sua sintaxe é uma tradução quase direta de instruções em português para código executável, permitindo que iniciantes foquem na lógica de programação sem se perder em complexidades sintáticas.
+A Symplia prioriza a legibilidade e familiaridade para falantes do português brasileiro. Sua sintaxe é uma tradução quase direta de instruções em português para código executável, permitindo que iniciantes foquem na lógica de programação sem se perder em complexidades sintáticas.
 
 ---
 
-## Sobre o Mascote
-
-**Capy**, a capivara astronauta, representa perfeitamente o propósito da linguagem *Symplia*:
-
-- Capy = Amigável e Tranquila!
-- Astronauta = Sem Limites para Explorar!
-
----
-
-## Documentação da Linguagem
+## Documentação da Linguagem -FALTA
 
 Para explorar todos os recursos da linguagem, acesse nossa documentação detalhada:<br>
 [Documentação Symplia](/Docs/Documentacao-Symplia-pt-br.md)
@@ -32,12 +23,6 @@ Para explorar todos os recursos da linguagem, acesse nossa documentação detalh
 ## Licença
 
 [GPL-3.0](https://pt.wikipedia.org/wiki/GNU_General_Public_License)
-
----
-
-## Como Contribuir
-
-Você pode contribuir com esse projeto simplesmente o usando da forma que bem entender.
 
 ---
 

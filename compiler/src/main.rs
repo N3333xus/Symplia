@@ -13,7 +13,6 @@ fn main() {
     
     let filename = &args[1];
     
-    // Ler o arquivo de entrada
     let source_code = match fs::read_to_string(filename) {
         Ok(content) => content,
         Err(e) => {
@@ -52,7 +51,7 @@ fn main() {
             println!("\n=== ESTRUTURA DO PROGRAMA ===");
             println!("{:?}", program);
             
-            // Estatísticas
+            // imprime statísticas
             let total_functions = program.functions.len();
             let total_statements = program.statements.len();
             println!("\n=== ESTATÍSTICAS ===");
@@ -69,7 +68,7 @@ fn main() {
     }
 }
 
-// Função auxiliar para análise interativa (útil para testes)
+// Função auxiliar para análise interativa em testes
 pub fn analyze_snippet(source: &str) -> Result<compiler::Program, Vec<compiler::ParserError>> {
     Parser::parse_from_source(source)
 }

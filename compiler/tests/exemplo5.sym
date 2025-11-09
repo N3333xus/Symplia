@@ -1,0 +1,13 @@
+funcao inteiro calcular_dobro(inteiro numero) {
+    inteiro resultado = numero * 2;
+    retorne resultado;
+}
+
+funcao inteiro principal() {
+    inteiro valor = 15;
+    inteiro dobro = calcular_dobro(valor);
+    
+    escreva("O dobro de", valor, "e", dobro);
+    
+    retorne 0;
+}

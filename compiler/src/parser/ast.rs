@@ -1,4 +1,3 @@
-// ast.rs
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -31,7 +30,7 @@ pub enum BinaryOperator {
     Greater,      // >
     GreaterEqual, // >=
     And,          // &&
-    Or,           // ||
+    Or,           
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -141,13 +140,9 @@ pub struct Program {
     pub statements: Vec<Statement>,
 }
 
-// Implementações de Display para debugging
-
-
-// No arquivo ast.rs, modifique temporariamente a implementação de Display para Program:
 impl fmt::Display for Program {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:#?}", self) // Usa Debug format em vez de Display
+        write!(f, "{:#?}", self) // usando debug ao invés de display
     }
 }
 

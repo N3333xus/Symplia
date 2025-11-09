@@ -1,4 +1,3 @@
-// src/parser/parser.rs
 use crate::lexer::{Lexer, Token, TokenType};
 use crate::parser::ast::*;
 use std::collections::VecDeque;
@@ -104,7 +103,7 @@ impl Parser {
         expected.iter().any(|t| &self.current_token.token_type == t)
     }
 
-    fn expect(&mut self, expected: &TokenType) -> bool {
+    /*fn expect(&mut self, expected: &TokenType) -> bool {
         if self.check(expected) {
             true
         } else {
@@ -118,9 +117,9 @@ impl Parser {
             self.errors.push(error);
             false
         }
-    }
+    }*/
 
-    fn peek(&mut self, k: usize) -> Result<TokenType, ParserError> {
+    /*fn peek(&mut self, k: usize) -> Result<TokenType, ParserError> {
         while self.lookahead_buffer.len() <= k {
             let token = self.lexer.next_token_for_parser()
                 .map_err(|e| ParserError::new(
@@ -134,7 +133,7 @@ impl Parser {
         }
         
         Ok(self.lookahead_buffer[k].token_type.clone())
-    }
+    }*/
 
     fn sync_recovery(&mut self, sync_tokens: &[TokenType]) {
         let mut recovery_count = 0;
@@ -305,10 +304,12 @@ impl Parser {
     }
 
     fn parse_statement_or_declaration(&mut self) -> Result<Statement, ParserError> {
+        // Verificar se é uma declaração de variável (começa com tipo)
         if self.check_any(&[TokenType::Inteiro, TokenType::Decimal, 
-                           TokenType::Texto, TokenType::Logico]) {
+                        TokenType::Texto, TokenType::Logico]) {
             Ok(Statement::VariableDecl(self.parse_variable_decl()?))
         } else {
+            // Caso contrário, é um statement normal
             self.parse_statement()
         }
     }

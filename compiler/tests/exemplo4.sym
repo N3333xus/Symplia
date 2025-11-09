@@ -1,0 +1,4 @@
+funcao inteiro principal() {
+    inteiro x = 10;
+    retorne x;
+}

@@ -6,4 +6,3 @@
 cd Symplia/compiler/tests
 cargo run -- exemplo.sym
 ```
-obs: ainda falta implementação de alguns erros no processo analise lexica
