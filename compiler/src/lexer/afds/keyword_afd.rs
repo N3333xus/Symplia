@@ -95,7 +95,7 @@ pub fn classify_keyword(lexema: &str) -> Option<TokenType> {
         "falso" => Some(TokenType::Falso),
         "escreva" => Some(TokenType::Escreva),
         "leia" => Some(TokenType::Leia),
-        "principal" => Some(TokenType::Principal),
+        //"principal" => Some(TokenType::Principal),
         _ => None,
     }
 }

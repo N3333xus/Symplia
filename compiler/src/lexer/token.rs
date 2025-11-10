@@ -23,7 +23,7 @@ pub enum TokenType {
     Falso,
     Escreva,
     Leia,
-    Principal,
+    //Principal,
 
     Identificador(String),
     InteiroLiteral(i64),
