@@ -1,4 +1,5 @@
 // programa em Symplia
+// exemplo de programa com erros
 
 funcao principal() {
     inteiro idade = 25

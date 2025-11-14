@@ -1,3 +1,5 @@
+// um exemplo de programa mais curto
+
 funcao inteiro principal() {
     inteiro x = 10;
     retorne x;

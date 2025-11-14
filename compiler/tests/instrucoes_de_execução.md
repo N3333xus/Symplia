@@ -9,7 +9,8 @@ cd compiler/tests
 cargo run -- exemplo3.sym
 ```
 
+
 ## Para Debugging
-Necessário Extensões do VSCode:
-- Extensão CodeLLDB
-- Extensão rust-analyzer
+Extensões Necessárias do VSCode:
+- Extensão [CodeLLDB](https://marketplace.visualstudio.com/items?itemName=vadimcn.vscode-lldb)
+- Extensão [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
