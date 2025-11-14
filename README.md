@@ -3,6 +3,9 @@
 
 ---
 
+[>>>>INSTRUÇÕES DE EXECUÇÃO DE TESTES<<<<](/compiler/tests/instrucoes_de_execução.md)
+
+---
 *Symplia* é uma linguagem de programação educacional de alto nível, projetada com um único propósito: **ser a primeira linguagem de um programador.** Ela age como uma ponte suave entre o pensamento lógico em português e os conceitos fundamentais da programação.
 
 ---

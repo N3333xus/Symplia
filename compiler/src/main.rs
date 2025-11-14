@@ -24,8 +24,7 @@ fn main() {
     println!("=== ANALISADOR SINTÁTICO SYMPLIA ===\n");
     println!("Arquivo: {}", filename);
     println!("Tamanho do código: {} caracteres\n", source_code.len());
-    
-    // FASE LÉXICA
+
     println!("=== ANALISE LÉXICA ===");
     let mut lexer = Lexer::new(&source_code);
     match lexer.tokenize() {
@@ -47,13 +46,11 @@ fn main() {
         }
     }
     
-    // FASE SINTÁTICA
     println!("\n=== ANALISE SINTÁTICA ===");
     match Parser::parse_from_source(&source_code) {
         Ok(program) => {
             println!("✅ Análise sintática concluída com sucesso!");
             
-            // ESTATÍSTICAS BÁSICAS
             println!("\n=== ESTATÍSTICAS ===");
             let total_functions = program.functions.len();
             let total_statements: usize = program.statements.len() + 
@@ -65,7 +62,6 @@ fn main() {
             println!("Comandos globais: {}", program.statements.len());
             println!("Total de comandos: {}", total_statements);
             
-            // ÁRVORE SINTÁTICA ABSTRATA (AST) - FORMATO COMPLETO
             println!("\n=== ÁRVORE SINTÁTICA ABSTRATA (AST) ===");
             println!("{:#?}", program);
             
