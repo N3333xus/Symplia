@@ -25,46 +25,60 @@ fn main() {
     println!("Arquivo: {}", filename);
     println!("Tamanho do código: {} caracteres\n", source_code.len());
     
-    println!("=== ANALISE LEXICA ===");
+    // FASE LÉXICA
+    println!("=== ANALISE LÉXICA ===");
     let mut lexer = Lexer::new(&source_code);
     match lexer.tokenize() {
         Ok(tokens) => {
-            println!("Tokens reconhecidos: {}", tokens.len());
+            println!("✅ Tokens reconhecidos: {}", tokens.len());
             
-            for (i, token) in tokens.iter().take(20).enumerate() {
-                println!("  {}: {}", i, token);
+            // Mostrar primeiros tokens para debug
+            println!("\n--- Primeiros 15 tokens ---");
+            for (i, token) in tokens.iter().take(15).enumerate() {
+                println!("  {:3}: {}", i, token);
             }
-            if tokens.len() > 20 {
-                println!("  ... ({} tokens omitidos)", tokens.len() - 20);
+            if tokens.len() > 15 {
+                println!("  ... ({} tokens omitidos)", tokens.len() - 15);
             }
         }
         Err(e) => {
-            eprintln!("Erro léxico: {}", e);
+            eprintln!("❌ Erro léxico: {}", e);
             process::exit(1);
         }
     }
     
+    // FASE SINTÁTICA
     println!("\n=== ANALISE SINTÁTICA ===");
     match Parser::parse_from_source(&source_code) {
         Ok(program) => {
             println!("✅ Análise sintática concluída com sucesso!");
-            println!("\n=== ESTRUTURA DO PROGRAMA ===");
-            println!("{:?}", program);
             
-            // imprime statísticas
-            let total_functions = program.functions.len();
-            let total_statements = program.statements.len();
+            // ESTATÍSTICAS BÁSICAS
             println!("\n=== ESTATÍSTICAS ===");
-            println!("Funções: {}", total_functions);
-            println!("Comandos globais: {}", total_statements);
+            let total_functions = program.functions.len();
+            let total_statements: usize = program.statements.len() + 
+                program.functions.iter()
+                    .map(|f| f.body.statements.len())
+                    .sum::<usize>();
+            
+            println!("Funções definidas: {}", total_functions);
+            println!("Comandos globais: {}", program.statements.len());
+            println!("Total de comandos: {}", total_statements);
+            
+            // ÁRVORE SINTÁTICA ABSTRATA (AST) - FORMATO COMPLETO
+            println!("\n=== ÁRVORE SINTÁTICA ABSTRATA (AST) ===");
+            println!("{:#?}", program);
+            
         }
         Err(errors) => {
             eprintln!("❌ Foram encontrados {} erros sintáticos:", errors.len());
-            for error in errors {
-                eprintln!("  {}", error);
+            for (i, error) in errors.iter().enumerate() {
+                println!("  {}. {}", i + 1, error);
             }
             process::exit(1);
         }
+
+        
     }
 }
 
@@ -72,3 +86,4 @@ fn main() {
 pub fn analyze_snippet(source: &str) -> Result<compiler::Program, Vec<compiler::ParserError>> {
     Parser::parse_from_source(source)
 }
+

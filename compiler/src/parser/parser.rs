@@ -160,7 +160,7 @@ impl Parser {
 
     // === MÉTODOS DE PARSING PRINCIPAIS 
 
-    pub fn parse_program(&mut self) -> Result<Program, Vec<ParserError>> { // correção de outro motivo de memory leaksss
+    pub fn parse_program(&mut self) -> Result<Program, Vec<ParserError>> {
         let mut functions = Vec::new();
         let mut statements = Vec::new();
 
@@ -170,10 +170,20 @@ impl Parser {
                     Ok(func) => functions.push(func),
                     Err(e) => {
                         self.errors.push(e);
-                        if let Err(_) = self.advance() {
-                            break; 
-                        }
                         self.sync_recovery(&[TokenType::Funcao, TokenType::EOF]);
+                    }
+                }
+            } else if self.check_any(&[TokenType::Inteiro, TokenType::Decimal, 
+                                    TokenType::Texto, TokenType::Logico]) {
+                // Parsear declarações de variáveis globais
+                match self.parse_variable_decl() {
+                    Ok(decl) => statements.push(Statement::VariableDecl(decl)),
+                    Err(e) => {
+                        self.errors.push(e);
+                        self.sync_recovery(&[
+                            TokenType::Funcao, TokenType::Inteiro, TokenType::Decimal, 
+                            TokenType::Texto, TokenType::Logico, TokenType::EOF
+                        ]);
                     }
                 }
             } else {
@@ -181,10 +191,6 @@ impl Parser {
                     Ok(stmt) => statements.push(stmt),
                     Err(e) => {
                         self.errors.push(e);
-                        // Avançar pelo menos um token para evitar loop infinito
-                        if let Err(_) = self.advance() {
-                            break; // Se não conseguirmos avançar, sair do loop
-                        }
                         self.sync_recovery(&[
                             TokenType::Funcao, TokenType::Inteiro, TokenType::Decimal, 
                             TokenType::Texto, TokenType::Logico, TokenType::EOF

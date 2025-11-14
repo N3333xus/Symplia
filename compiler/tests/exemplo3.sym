@@ -1,13 +1,17 @@
 // exemplo de comentario
 // exemplo programa em Symplia
+/*
+comentario de bloco
+comentario de bloco
+*/
 
 funcao inteiro soma(inteiro a, inteiro b) {
     inteiro resultado = a + b;
     retorne resultado;
 }
 
-inteiro principal() {
-    Inteiro x = 10;
+funcao inteiro principal() {
+    inteiro x = 10;
     inteiro y = 20;
     inteiro total = soma(x, y);
     
@@ -21,3 +25,4 @@ inteiro principal() {
     
     retorne 0;
 }
+
