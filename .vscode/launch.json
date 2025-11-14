@@ -5,20 +5,20 @@
             "name": "Debug Compiler",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/target/debug/compiler",
-            "args": ["testes/exemplo.sym"],
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "cargo build",
+            "program": "${workspaceFolder}/compiler/target/debug/compiler",
+            "args": ["compiler/tests/exemplo3.sym"],
+            "cwd": "${workspaceFolder}/compiler",
+            "preLaunchTask": "cargo build compiler",
             "console": "integratedTerminal"
         },
         {
-            "name": "Debug Compiler (Custom File)",
-            "type": "lldb", 
+            "name": "Debug Current File",
+            "type": "lldb",
             "request": "launch",
-            "program": "${workspaceFolder}/target/debug/compiler",
-            "args": ["${file}"],
-            "cwd": "${workspaceFolder}",
-            "preLaunchTask": "cargo build",
+            "program": "${workspaceFolder}/compiler/target/debug/compiler",
+            "args": ["${relativeFile}"],
+            "cwd": "${workspaceFolder}/compiler",
+            "preLaunchTask": "cargo build compiler",
             "console": "integratedTerminal"
         }
     ]

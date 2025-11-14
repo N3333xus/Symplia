@@ -1,0 +1,10 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "compiler/Cargo.toml"
+    ],
+    "rust-analyzer.check.command": "clippy",
+    "files.exclude": {
+        "**/target": true,
+        "**/Cargo.lock": true
+    }
+}
