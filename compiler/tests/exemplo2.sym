@@ -2,7 +2,7 @@ função inteiro soma(inteiro a, inteiro b) {
     retorne a + b;
 }
 
-inteiro principal() {
+funcao inteiro principal() {
     inteiro x = 10;
     inteiro y = 20;
     inteiro resultado = soma(x, y);

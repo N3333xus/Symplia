@@ -29,19 +29,16 @@ fn main() {
     let mut lexer = Lexer::new(&source_code);
     match lexer.tokenize() {
         Ok(tokens) => {
-            println!("✅ Tokens reconhecidos: {}", tokens.len());
+            println!("TOKENS RECONHECIDOS: {}", tokens.len());
             
-            // Mostrar primeiros tokens para debug
-            println!("\n--- Primeiros 15 tokens ---");
-            for (i, token) in tokens.iter().take(15).enumerate() {
+            // Mostrar TODOS os tokens
+            println!("\n--- TODOS OS TOKENS RECONHECIDOS ({} tokens) ---", tokens.len());
+            for (i, token) in tokens.iter().enumerate() {
                 println!("  {:3}: {}", i, token);
-            }
-            if tokens.len() > 15 {
-                println!("  ... ({} tokens omitidos)", tokens.len() - 15);
             }
         }
         Err(e) => {
-            eprintln!("❌ Erro léxico: {}", e);
+            eprintln!("ERRO LÉXICO: {}", e);
             process::exit(1);
         }
     }

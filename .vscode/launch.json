@@ -17,9 +17,11 @@
             "request": "launch",
             "program": "${workspaceFolder}/compiler/target/debug/compiler",
             "args": ["${relativeFile}"],
-            "cwd": "${workspaceFolder}/compiler",
+            "cwd": "${workspaceFolder}",
             "preLaunchTask": "cargo build compiler",
             "console": "integratedTerminal"
         }
+
+        
     ]
 }
