@@ -1,4 +1,5 @@
-use compiler::{Lexer, Parser, SemanticAnalyzer};
+use compiler::{Lexer, Parser, SemanticAnalyzer, LLVMCodeGenerator};
+use inkwell::context::Context;
 use std::env;
 use std::fs;
 use std::process;
@@ -21,15 +22,16 @@ fn main() {
         }
     };
     
-    println!("=== ANALISADOR SINTÁTICO SYMPLIA ===\n");
+    println!("=== COMPILADOR SYMPLIA ===\n");
     println!("Arquivo: {}", filename);
     println!("Tamanho do código: {} caracteres\n", source_code.len());
 
+    // FASE LÉXICA
     println!("=== ANALISE LÉXICA ===");
     let mut lexer = Lexer::new(&source_code);
     let _tokens = match lexer.tokenize() {
         Ok(tokens) => {
-            println!("Tokens reconhecidos: {}", tokens.len());
+            println!("✅ Tokens reconhecidos: {}", tokens.len());
             tokens
         }
         Err(e) => {
@@ -38,12 +40,12 @@ fn main() {
         }
     };
     
+    // FASE SINTÁTICA
     println!("\n=== ANALISE SINTÁTICA ===");
     let program = match Parser::parse_from_source(&source_code) {
         Ok(program) => {
-            println!("Análise sintática concluída com sucesso!");
+            println!("✅ Análise sintática concluída com sucesso!");
             program
-            
         }
         Err(errors) => {
             eprintln!("❌ Foram encontrados {} erros sintáticos:", errors.len());
@@ -54,6 +56,7 @@ fn main() {
         }
     };
 
+    // FASE SEMÂNTICA
     println!("\n=== ANALISE SEMÂNTICA ===");
     let mut semantic_analyzer = SemanticAnalyzer::new();
     let semantic_result = semantic_analyzer.analyze(program);
@@ -66,18 +69,31 @@ fn main() {
         process::exit(1);
     }
     
-    println!("Análise semântica concluída com sucesso!");
-    
-    println!("\n=== ESTATÍSTICAS FINAIS ===");
-    println!("Funções definidas: {}", semantic_result.annotated_ast.functions.len());
-    println!("Tabela de símbolos: {} entradas", "TODO"); // pode adicionar um método para contar
-    
-    println!("\n=== AST ===");
-    println!("{:#?}", semantic_result.annotated_ast);
-}
+    println!("✅ Análise semântica concluída com sucesso!");
 
-pub fn analyze_snippet(source: &str) -> Result<compiler::SemanticAnalysisResult, Vec<compiler::ParserError>> {
-    let program = Parser::parse_from_source(source)?;
-    let mut analyzer = SemanticAnalyzer::new();
-    Ok(analyzer.analyze(program))
+    // ✅ NOVA FASE: GERAÇÃO DE CÓDIGO LLVM IR
+    println!("\n=== GERAÇÃO DE CÓDIGO LLVM IR ===");
+    
+    let context = Context::create();
+    let codegen = LLVMCodeGenerator::new(&context);
+    
+    match codegen.generate_ir(&semantic_result, "main") {
+        Ok(llvm_ir) => {
+            println!("✅ Geração de código LLVM IR bem-sucedida!");
+            println!("\n=== CÓDIGO LLVM IR GERADO ===");
+            println!("{}", llvm_ir);
+            
+            // Salva em arquivo
+            let ir_filename = format!("{}.ll", filename.replace(".sym", ""));
+            if let Err(e) = fs::write(&ir_filename, &llvm_ir) {
+                eprintln!("⚠️  Não foi possível salvar o arquivo .ll: {}", e);
+            } else {
+                println!("📁 Código LLVM IR salvo em: {}", ir_filename);
+            }
+        }
+        Err(e) => {
+            eprintln!("❌ Erro na geração de código LLVM IR: {}", e);
+            process::exit(1);
+        }
+    }
 }

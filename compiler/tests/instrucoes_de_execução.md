@@ -1,6 +1,13 @@
 # Instruções de execução
 
 - Necessario rust 1.90.0 e cargo 1.90.0
+- necessário cmake
+
+rustup component add llvm-tools
+cargo install cargo-binutils
+
+export LLVM_SYS_210_PREFIX=$(llvm-config --prefix)
+
 
 ```
 git clone https://github.com/N3333xus/Symplia
