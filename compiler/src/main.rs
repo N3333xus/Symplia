@@ -71,29 +71,5 @@ fn main() {
     
     println!("✅ Análise semântica concluída com sucesso!");
 
-    // ✅ NOVA FASE: GERAÇÃO DE CÓDIGO LLVM IR
-    println!("\n=== GERAÇÃO DE CÓDIGO LLVM IR ===");
-    
-    let context = Context::create();
-    let codegen = LLVMCodeGenerator::new(&context);
-    
-    match codegen.generate_ir(&semantic_result, "main") {
-        Ok(llvm_ir) => {
-            println!("✅ Geração de código LLVM IR bem-sucedida!");
-            println!("\n=== CÓDIGO LLVM IR GERADO ===");
-            println!("{}", llvm_ir);
-            
-            // Salva em arquivo
-            let ir_filename = format!("{}.ll", filename.replace(".sym", ""));
-            if let Err(e) = fs::write(&ir_filename, &llvm_ir) {
-                eprintln!("⚠️  Não foi possível salvar o arquivo .ll: {}", e);
-            } else {
-                println!("📁 Código LLVM IR salvo em: {}", ir_filename);
-            }
-        }
-        Err(e) => {
-            eprintln!("❌ Erro na geração de código LLVM IR: {}", e);
-            process::exit(1);
-        }
-    }
+   
 }
