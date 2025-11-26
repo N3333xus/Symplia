@@ -1,6 +1,7 @@
 use std::fmt;
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Literal {
     Inteiro(i64),
     Decimal(f64),
@@ -8,7 +9,7 @@ pub enum Literal {
     Logico(bool),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Type {
     Inteiro,
     Decimal,
@@ -16,7 +17,7 @@ pub enum Type {
     Logico,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum BinaryOperator {
     Add,          // +
     Subtract,     // -
@@ -33,25 +34,25 @@ pub enum BinaryOperator {
     Or,           
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum UnaryOperator {
     Negate, // -
     Plus,   // +
     Not,    // !
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Parameter {
     pub param_type: Type,
     pub name: String,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Block {
     pub statements: Vec<Statement>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Expr {
     Literal(Literal),
     Variable(String),
@@ -60,38 +61,38 @@ pub enum Expr {
     UnaryOp(UnaryOperator, Box<Expr>),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CallExpr {
     pub function: String,
     pub arguments: Vec<Expr>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct VariableDecl {
     pub var_type: Type,
     pub name: String,
     pub initializer: Option<Expr>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ExprStmt {
     pub expr: Expr,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct IfStmt {
     pub condition: Expr,
     pub then_branch: Block,
     pub else_branch: Option<Block>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WhileStmt {
     pub condition: Expr,
     pub body: Block,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ForStmt {
     pub variable: String,
     pub start: Expr,
@@ -99,22 +100,22 @@ pub struct ForStmt {
     pub body: Block,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ReturnStmt {
     pub value: Option<Expr>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct WriteStmt {
     pub arguments: Vec<Expr>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ReadStmt {
     pub target: Expr,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum Statement {
     VariableDecl(VariableDecl),
     ExprStmt(ExprStmt),
@@ -126,7 +127,7 @@ pub enum Statement {
     ReadStmt(ReadStmt),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct FunctionDecl {
     pub return_type: Option<Type>,
     pub name: String,
@@ -134,7 +135,7 @@ pub struct FunctionDecl {
     pub body: Block,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Program {
     pub functions: Vec<FunctionDecl>,
     pub statements: Vec<Statement>,

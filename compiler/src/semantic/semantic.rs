@@ -1,14 +1,15 @@
 use crate::parser::ast::*;
 use crate::semantic::symbol_table::{SymbolTable, Symbol};
 use crate::semantic::type_checker::TypeChecker;
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnnotatedExpr {
     pub expr: Expr,
     pub type_: Type,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AnnotatedStatement {
     pub statement: Statement,
     pub expr_annotations: Vec<AnnotatedExpr>,
