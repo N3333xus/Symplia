@@ -4,7 +4,7 @@ Gera LLVM IR a partir da AST desserializada usando llvmlite
 """
 
 from llvmlite import ir, binding
-from typing import List, Dict, Optional, Union, Any
+from typing import List, Dict, Optional #, Union, Any
 from dataclasses import dataclass
 from .ast_nodes import (
     SerializableProgram, SerializableFunction, SerializableStatement,
@@ -467,7 +467,7 @@ class LLVMBuilder:
     
     def _generate_global_statements(self, statements: List[SerializableStatement]):
         """Gera código para statements globais (em função main implícita)"""
-        
+
         main_type = ir.FunctionType(ir.IntType(32), [])
         main_func = ir.Function(self.module, main_type, name="main")
         

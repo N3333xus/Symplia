@@ -1,9 +1,5 @@
 # Symplia 🇧🇷
-<img src="https://github.com/N3333xus/Symplia/blob/main/Logo/Symplia-Logo.png" width=30% height=30%> 
-
----
-
-[>>>>INSTRUÇÕES DE EXECUÇÃO DE TESTES<<<<](/compiler/tests/instrucoes_de_execução.md)
+![Logo](Logo/img.png)
 
 ---
 *Symplia* é uma linguagem de programação educacional de alto nível, projetada com um único propósito: **ser a primeira linguagem de um programador.** Ela age como uma ponte suave entre o pensamento lógico em português e os conceitos fundamentais da programação.
@@ -16,9 +12,13 @@ A Symplia prioriza a legibilidade e familiaridade para falantes do português br
 
 ---
 
-## Documentação da Linguagem -FALTA
+## Guia de Instalação
 
-Para explorar todos os recursos da linguagem, acesse nossa documentação detalhada:<br>
+Acesse o **Guia de Instalação**[ >> Aqui << ](/Docs/Guia_de_Instalação.md)
+
+## Documentação
+
+Para explorar todos os recursos da linguagem, acesse a documentação:<br>
 [Documentação Symplia](/Docs/Documentacao-Symplia-pt-br.md)
 
 ---

@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 use crate::parser::ast::{Type, FunctionDecl};
+use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum Symbol {
     Variable {
         name: String,
@@ -13,13 +14,13 @@ pub enum Symbol {
     },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Scope {
     symbols: HashMap<String, Symbol>,
     parent: Option<usize>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SymbolTable {
     scopes: Vec<Scope>,
     current_scope: usize,

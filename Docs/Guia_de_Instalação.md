@@ -1,4 +1,12 @@
-# Instruções de execução
+# Guia de Instalação e Uso
+
+## 1 - Instalação de Dependencias
+
+Windows
+
+Linux (Debian/Arch)
+
+## 2 - Clone o Repositório
 
 - Necessario rust 1.90.0 e cargo 1.90.0
 - necessário cmake

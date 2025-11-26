@@ -15,14 +15,14 @@ pub struct AnnotatedStatement {
     pub expr_annotations: Vec<AnnotatedExpr>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct SemanticAnalysisResult {
     pub annotated_ast: Program,
     pub symbol_table: SymbolTable,
     pub errors: Vec<SemanticError>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SemanticError {
     pub message: String,
     pub line: usize,
