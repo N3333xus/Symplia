@@ -79,32 +79,22 @@ class LLVMBuilder:
         self.builder = builder
         self.current_function = main_func
         
-        # Verificar se existe uma função 'main' no programa Symplia
-        symplia_main_exists = "main" in self.symbol_tables[0]
+        # Verificar se existe uma função 'principal' no programa Symplia
+        symplia_main_exists = "principal" in self.symbol_tables[0]
         
         if symplia_main_exists:
-            # Chamar a função main do Symplia se existir
-            symplia_main = self.symbol_tables[0]["main"].ir_value
+            # Chamar a função principal do Symplia se existir
+            symplia_main = self.symbol_tables[0]["principal"].ir_value
             call_result = builder.call(symplia_main, [])
             
-            # Se a main do Symplia retorna um valor, usá-lo como retorno
-            # Caso contrário, retornar 0
+            # Se a principal do Symplia retorna um valor, usá-lo como retorno
             if symplia_main.function_type.return_type != ir.VoidType():
                 builder.ret(call_result)
             else:
                 builder.ret(ir.Constant(ir.IntType(32), 0))
         else:
-            # Se não houver função main no Symplia, executar statements globais
-            self.symbol_tables.append({})
-            
-            for statement in program.global_statements:
-                self._generate_statement(statement)
-            
-            # Retornar 0 (sucesso)
-            if not self.builder.block.is_terminated:
-                self.builder.ret(ir.Constant(ir.IntType(32), 0))
-            
-            self.symbol_tables.pop()
+            # Se não houver função principal, retornar 0
+            builder.ret(ir.Constant(ir.IntType(32), 0))
         
         # Restaurar o builder anterior
         self.builder = old_builder
@@ -151,7 +141,6 @@ class LLVMBuilder:
             if function.return_type is None or function.return_type == SerializableType.Void:
                 self.builder.ret_void()
             else:
-
                 default_value = self._get_default_value(function.return_type)
                 self.builder.ret(default_value)
         
@@ -194,7 +183,6 @@ class LLVMBuilder:
     
     def _generate_variable_decl(self, decl: SerializableVariableDecl):
         """Gera código para declaração de variável"""
-
         var_type = self._map_type(decl.var_type)
         alloca = self.builder.alloca(var_type, name=decl.name)
         
@@ -206,6 +194,10 @@ class LLVMBuilder:
         if decl.initializer:
             init_value = self._generate_expression(decl.initializer)
             self.builder.store(init_value, alloca)
+        else:
+            # Inicializar com valor padrão
+            default_value = self._get_default_value(decl.var_type)
+            self.builder.store(default_value, alloca)
     
     def _generate_expr_stmt(self, stmt):
         """Gera código para statement de expressão"""
@@ -213,7 +205,6 @@ class LLVMBuilder:
     
     def _generate_if_stmt(self, stmt):
         """Gera código para if statement"""
-
         cond_value = self._generate_expression(stmt.condition)
         
         then_block = self.current_function.append_basic_block("then")
@@ -329,24 +320,33 @@ class LLVMBuilder:
             arg_type = arg.expr_type_annotation
             
             if arg_type == SerializableType.Inteiro:
-                # printf("%d\n", value)
-                format_str = self._create_global_string("%d\n")
+                # printf("%d", value)
+                format_str = self._create_global_string("%d")
                 self.builder.call(self.printf, [format_str, arg_value])
             elif arg_type == SerializableType.Decimal:
-                # printf("%f\n", value)
-                format_str = self._create_global_string("%f\n")
+                # printf("%f", value)
+                format_str = self._create_global_string("%f")
                 self.builder.call(self.printf, [format_str, arg_value])
             elif arg_type == SerializableType.Texto:
-                # printf("%s\n", value)
-                format_str = self._create_global_string("%s\n")
+                # printf("%s", value)
+                format_str = self._create_global_string("%s")
                 self.builder.call(self.printf, [format_str, arg_value])
             elif arg_type == SerializableType.Logico:
                 # Converter booleano para string
-                true_str = self._create_global_string("verdadeiro\n")
-                false_str = self._create_global_string("falso\n")
+                true_str = self._create_global_string("verdadeiro")
+                false_str = self._create_global_string("falso")
                 
                 cond = self.builder.icmp_unsigned('!=', arg_value, ir.Constant(ir.IntType(1), 0))
-                self.builder.call(self.printf, [self.builder.select(cond, true_str, false_str)])
+                selected_str = self.builder.select(cond, true_str, false_str)
+                self.builder.call(self.printf, [self._create_global_string("%s"), selected_str])
+            
+            # Adicionar espaço entre argumentos
+            space_str = self._create_global_string(" ")
+            self.builder.call(self.printf, [space_str])
+        
+        # Nova linha após todos os argumentos
+        newline_str = self._create_global_string("\n")
+        self.builder.call(self.printf, [newline_str])
     
     def _generate_read_stmt(self, stmt):
         """Gera código para leia statement"""
@@ -539,21 +539,21 @@ class LLVMBuilder:
     
     def _create_global_string(self, text: str) -> ir.Value:
         """Cria uma string global constante com nome único"""
-
+        # Incluir o null terminator
         text_bytes = text.encode('utf-8') + b'\x00'
         
         # Gerar nome único para a string
         self.string_counter += 1
         global_name = f".str.{self.string_counter}"
         
-        global_str = ir.GlobalVariable(self.module, 
-                                     ir.ArrayType(ir.IntType(8), len(text_bytes)),
-                                     name=global_name)
+        # Criar array de bytes constante
+        array_type = ir.ArrayType(ir.IntType(8), len(text_bytes))
+        global_str = ir.GlobalVariable(self.module, array_type, name=global_name)
         global_str.linkage = 'internal'
         global_str.global_constant = True
-        global_str.initializer = ir.Constant(ir.ArrayType(ir.IntType(8), len(text_bytes)),
-                                         [ir.Constant(ir.IntType(8), b) for b in text_bytes])
+        global_str.initializer = ir.Constant(array_type, [ir.Constant(ir.IntType(8), b) for b in text_bytes])
         
+        # Retornar ponteiro para o primeiro elemento
         zero = ir.Constant(ir.IntType(32), 0)
         return self.builder.gep(global_str, [zero, zero], inbounds=True)
 

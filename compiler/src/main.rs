@@ -97,8 +97,8 @@ fn main() {
     }
 }
 
-/* 
-testes unitários para o main
+
+//testes unitários para o main
 #[cfg(test)]
 mod tests {
 
@@ -133,4 +133,3 @@ mod tests {
         assert_eq!(json_filename2, "../build/teste.ast.json");
     }
 }
-*/
