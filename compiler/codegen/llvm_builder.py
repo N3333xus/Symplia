@@ -4,7 +4,7 @@ Gera LLVM IR a partir da AST desserializada usando llvmlite
 """
 
 from llvmlite import ir, binding
-from typing import List, Dict, Optional #, Union, Any
+from typing import List, Dict, Optional
 from dataclasses import dataclass
 from codegen.ast_nodes import (
     SerializableProgram, SerializableFunction, SerializableStatement,
@@ -12,10 +12,6 @@ from codegen.ast_nodes import (
     SerializableUnaryOperator, SerializableLiteral, SerializableCallExpr,
     SerializableVariableDecl, SerializableBlock
 )
-
-binding.initialize()
-binding.initialize_native_target()
-binding.initialize_native_asmprinter()
 
 @dataclass
 class VariableInfo:
@@ -193,72 +189,58 @@ class LLVMBuilder:
         if not self.builder.block.is_terminated:
             self.builder.branch(merge_block)
         
-        # Continuar no merge block
         self.builder.position_at_end(merge_block)
     
     def _generate_while_stmt(self, stmt):
         """Gera código para while statement"""
-        # Criar blocos
         cond_block = self.current_function.append_basic_block("while_cond")
         body_block = self.current_function.append_basic_block("while_body")
         end_block = self.current_function.append_basic_block("while_end")
         
-        # Branch para condição
         self.builder.branch(cond_block)
         
-        # Gerar condição
         self.builder.position_at_end(cond_block)
         cond_value = self._generate_expression(stmt.condition)
         self.builder.cbranch(cond_value, body_block, end_block)
         
-        # Gerar corpo
         self.builder.position_at_end(body_block)
         self.symbol_tables.append({})
         self._generate_block(stmt.body)
         if not self.builder.block.is_terminated:
-            self.builder.branch(cond_block)  # Loop
+            self.builder.branch(cond_block)  
         self.symbol_tables.pop()
         
-        # Continuar no end block
         self.builder.position_at_end(end_block)
     
     def _generate_for_stmt(self, stmt):
         """Gera código for statement (simulado como while)"""
-        # Alocar variável do loop
         var_type = self._map_type(SerializableType.Inteiro)
         alloca = self.builder.alloca(var_type, name=stmt.variable)
         
-        # Inicializar variável
         start_value = self._generate_expression(stmt.start)
         self.builder.store(start_value, alloca)
         
-        # Adicionar à tabela de símbolos
         self.symbol_tables[-1][stmt.variable] = VariableInfo(
             ir_value=alloca,
             var_type=SerializableType.Inteiro
         )
         
-        # Criar blocos
         cond_block = self.current_function.append_basic_block("for_cond")
         body_block = self.current_function.append_basic_block("for_body")
         end_block = self.current_function.append_basic_block("for_end")
         
-        # Branch para condição
         self.builder.branch(cond_block)
         
-        # Gerar condição
         self.builder.position_at_end(cond_block)
         current_value = self.builder.load(alloca, stmt.variable)
         end_value = self._generate_expression(stmt.end)
         cond_value = self.builder.icmp_signed('<=', current_value, end_value)
         self.builder.cbranch(cond_value, body_block, end_block)
         
-        # Gerar corpo
         self.builder.position_at_end(body_block)
         self.symbol_tables.append({})
         self._generate_block(stmt.body)
         
-        # Incrementar variável
         current_value = self.builder.load(alloca, stmt.variable)
         inc_value = self.builder.add(current_value, ir.Constant(ir.IntType(32), 1))
         self.builder.store(inc_value, alloca)

@@ -6,6 +6,7 @@ Espelha as estruturas serializáveis de Rust
 from dataclasses import dataclass, field
 from typing import List, Optional, Union, Dict, Any
 import json
+from pathlib import Path
 from enum import Enum
 
 class SerializableType(Enum):
