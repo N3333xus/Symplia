@@ -1,0 +1,4 @@
+escreva("Hello World!");
+escreva(42);
+escreva(3.14);
+escreva(verdadeiro);

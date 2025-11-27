@@ -55,13 +55,60 @@ class LLVMBuilder:
             for function in program.functions:
                 self._generate_function_definition(function)
             
-            if program.global_statements:
-                self._generate_global_statements(program.global_statements)
+            # Sempre gerar uma função main do LLVM IR
+            self._generate_main_wrapper(program)
             
             return str(self.module)
         
         except Exception as e:
             raise RuntimeError(f"Erro na geração de código LLVM: {e}")
+    
+    def _generate_main_wrapper(self, program: SerializableProgram):
+        """Gera uma função main do LLVM IR que serve como ponto de entrada"""
+        
+        # Criar a função main do LLVM IR (ponto de entrada do programa)
+        main_type = ir.FunctionType(ir.IntType(32), [])
+        main_func = ir.Function(self.module, main_type, name="main")
+        
+        # Criar bloco de entrada
+        entry_block = main_func.append_basic_block(name="entry")
+        builder = ir.IRBuilder(entry_block)
+        
+        # Salvar o builder atual e definir o novo
+        old_builder = self.builder
+        self.builder = builder
+        self.current_function = main_func
+        
+        # Verificar se existe uma função 'main' no programa Symplia
+        symplia_main_exists = "main" in self.symbol_tables[0]
+        
+        if symplia_main_exists:
+            # Chamar a função main do Symplia se existir
+            symplia_main = self.symbol_tables[0]["main"].ir_value
+            call_result = builder.call(symplia_main, [])
+            
+            # Se a main do Symplia retorna um valor, usá-lo como retorno
+            # Caso contrário, retornar 0
+            if symplia_main.function_type.return_type != ir.VoidType():
+                builder.ret(call_result)
+            else:
+                builder.ret(ir.Constant(ir.IntType(32), 0))
+        else:
+            # Se não houver função main no Symplia, executar statements globais
+            self.symbol_tables.append({})
+            
+            for statement in program.global_statements:
+                self._generate_statement(statement)
+            
+            # Retornar 0 (sucesso)
+            if not self.builder.block.is_terminated:
+                self.builder.ret(ir.Constant(ir.IntType(32), 0))
+            
+            self.symbol_tables.pop()
+        
+        # Restaurar o builder anterior
+        self.builder = old_builder
+        self.current_function = None
     
     def _generate_function_declaration(self, function: SerializableFunction):
         """Declara uma função (sem gerar corpo)"""
@@ -461,33 +508,6 @@ class LLVMBuilder:
                 return self.builder.not_(operand_val)
         
         raise RuntimeError(f"Operador unário {op} não suportado para tipo {operand_type}")
-    
-    def _generate_global_statements(self, statements: List[SerializableStatement]):
-        """Gera código para statements globais (em função main implícita)"""
-
-        main_type = ir.FunctionType(ir.IntType(32), [])
-        main_func = ir.Function(self.module, main_type, name="main")
-        
-        # Gerar corpo da main
-        entry_block = main_func.append_basic_block(name="entry")
-        builder = ir.IRBuilder(entry_block)
-        
-        old_builder = self.builder
-        self.builder = builder
-        self.current_function = main_func
-        
-        self.symbol_tables.append({})
-        
-        for statement in statements:
-            self._generate_statement(statement)
-        
-        # Retornar 0 (sucesso)
-        if not self.builder.block.is_terminated:
-            self.builder.ret(ir.Constant(ir.IntType(32), 0))
-        
-        self.symbol_tables.pop()
-        self.builder = old_builder
-        self.current_function = None
     
     def _lookup_variable(self, name: str) -> VariableInfo:
         """Busca variável na tabela de símbolos (do escopo atual para os pais)"""
