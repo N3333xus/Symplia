@@ -130,7 +130,6 @@ impl From<&CallExpr> for SerializableCallExpr {
         SerializableCallExpr {
             function: call.function.clone(),
             arguments: call.arguments.iter().map(|_expr| {
-                // Aqui usamos placeholders até o estágio semântico fornecer AnnotatedExpr
                 SerializableExpr::Literal {
                     value: SerializableLiteral::Inteiro(0),
                     expr_type: SerializableType::Inteiro,
@@ -543,7 +542,6 @@ impl From<&SemanticAnalysisResult> for SerializableProgram {
 
 // ==================== FUNÇÕES PÚBLICAS ====================
 
-/// Salva um programa serializado em um arquivo JSON
 pub fn save_program_to_json(program: &Program, filename: &str) -> Result<(), Box<dyn std::error::Error>> {
     let serializable_program = SerializableProgram::from(program);
     let json = serde_json::to_string_pretty(&serializable_program)?;
@@ -551,7 +549,6 @@ pub fn save_program_to_json(program: &Program, filename: &str) -> Result<(), Box
     Ok(())
 }
 
-/// Salva o resultado da análise semântica em um arquivo JSON
 pub fn save_semantic_result_to_json(
     result: &SemanticAnalysisResult, 
     filename: &str
@@ -562,7 +559,6 @@ pub fn save_semantic_result_to_json(
     Ok(())
 }
 
-/// Carrega um programa serializado de um arquivo JSON (para testes)
 pub fn load_program_from_json(filename: &str) -> Result<SerializableProgram, Box<dyn std::error::Error>> {
     let json = fs::read_to_string(filename)?;
     let program: SerializableProgram = serde_json::from_str(&json)?;

@@ -28,10 +28,9 @@ fn main() {
     println!("Arquivo: {}", filename);
     println!("Tamanho do código: {} caracteres\n", source_code.len());
 
-    // FASE LÉXICA
     println!("=== ANÁLISE LÉXICA ===");
     let mut lexer = Lexer::new(&source_code);
-    let tokens = match lexer.tokenize() {
+    let _tokens = match lexer.tokenize() {
         Ok(tokens) => {
             println!("✅ Tokens reconhecidos: {}", tokens.len());
             if cfg!(debug_assertions) {
@@ -48,7 +47,6 @@ fn main() {
         }
     };
     
-    // FASE SINTÁTICA
     println!("\n=== ANÁLISE SINTÁTICA ===");
     let program = match Parser::parse_from_source(&source_code) {
         Ok(program) => {
@@ -64,7 +62,6 @@ fn main() {
         }
     };
 
-    // FASE SEMÂNTICA
     println!("\n=== ANÁLISE SEMÂNTICA ===");
     let mut semantic_analyzer = SemanticAnalyzer::new();
     let semantic_result = semantic_analyzer.analyze(program);
@@ -79,7 +76,7 @@ fn main() {
     
     println!("✅ Análise semântica concluída com sucesso!");
 
-    // ✅ NOVA FASE: SERIALIZAÇÃO DA AST PARA JSON
+    //SERIALIZAÇÃO DA AST PARA JSON
     println!("\n=== SERIALIZAÇÃO DA AST ===");
     
     let json_filename = format!("{}.ast.json", filename.replace(".sym", ""));
@@ -99,10 +96,9 @@ fn main() {
     }
 }
 
-// Testes unitários para o main (opcional)
+// Testes unitários para o main
 #[cfg(test)]
 mod tests {
-    use super::*;
 
     #[test]
     fn test_args_validation() {

@@ -2,6 +2,8 @@
 
 ## 1 - Instalação de Dependencias
 
+Necessário Rust 1.90, é interresante que seja instalado por meio do Rustup
+
 Windows
 
 Linux (Debian/Arch)

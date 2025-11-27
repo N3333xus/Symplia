@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import Optional, List
 
 class SympliaCompiler:
-    # integração Rust frontend e Python codegen
     
     def __init__(self, verbose: bool = False, keep_temp: bool = False):
         self.verbose = verbose
@@ -22,34 +21,41 @@ class SympliaCompiler:
         self.temp_dir = None
         self.errors = []
         
-        self.compiler_dir = Path(__file__).parent
-        self.rust_compiler_dir = self.compiler_dir / "compiler"
-        self.codegen_dir = self.compiler_dir / "codegen"
+        self.project_root = Path(__file__).parent
+        self.compiler_dir = self.project_root / "compiler"      # Código Rust
+        self.codegen_dir = self.compiler_dir / "codegen"        # Código Python
+        self.programas_dir = self.project_root / "programas"    # Programas usuário
         
         self._validate_project_structure()
     
     def _validate_project_structure(self):
-        """Valida se a estrutura do projeto está correta"""
+        """Valida se a estrutura do projeto está correta - NOVA ESTRUTURA"""
         required_dirs = [
-            self.rust_compiler_dir,
+            self.compiler_dir,
             self.codegen_dir
         ]
         
         required_files = [
-            self.rust_compiler_dir / "Cargo.toml",
-            self.rust_compiler_dir / "src" / "main.rs",
+            self.compiler_dir / "Cargo.toml",
+            self.compiler_dir / "src" / "main.rs",
             self.codegen_dir / "symplia_codegen.py",
             self.codegen_dir / "ast_nodes.py", 
             self.codegen_dir / "llvm_builder.py"
         ]
         
+        # Verificar diretórios
         for dir_path in required_dirs:
             if not dir_path.exists():
                 raise RuntimeError(f"Diretório não encontrado: {dir_path}")
         
+        # Verificar arquivos
         for file_path in required_files:
             if not file_path.exists():
                 raise RuntimeError(f"Arquivo não encontrado: {file_path}")
+        
+        # Verificar se programas/ existe (opcional, mas recomendado)
+        if not self.programas_dir.exists():
+            self.log(f"⚠️  Diretório 'programas/' não encontrado. Crie para organizar seus arquivos .sym")
         
         self.log("✅ Estrutura do projeto validada")
     
@@ -68,8 +74,7 @@ class SympliaCompiler:
         """Compila um arquivo .sym para o target especificado"""
         try:
             source_path = Path(source_file)
-            
-            # Validar arquivo de entrada
+
             if not source_path.exists():
                 self.error(f"Arquivo fonte não encontrado: {source_file}")
                 return False
@@ -78,7 +83,6 @@ class SympliaCompiler:
                 self.error(f"Arquivo deve ter extensão .sym: {source_file}")
                 return False
             
-            # Criar diretório temporário SE NECESSARIO
             if not self.keep_temp:
                 self.temp_dir = tempfile.mkdtemp(prefix="symplia_")
                 self.log(f"Diretório temporário criado: {self.temp_dir}")
@@ -149,12 +153,12 @@ class SympliaCompiler:
             env = os.environ.copy()
             
             self.log(f"Comando: {' '.join(cmd)}")
-            self.log(f"Diretório: {self.rust_compiler_dir}")
+            self.log(f"Diretório: {self.compiler_dir}")
             
             # Executar compilador Rust
             result = subprocess.run(
                 cmd,
-                cwd=self.rust_compiler_dir,
+                cwd=self.compiler_dir,
                 capture_output=True,
                 text=True,
                 env=env
@@ -193,7 +197,7 @@ class SympliaCompiler:
         try:
             self.log("Executando codegen Python...")
             
-            # Construir comando
+            # Construir comando - IMPORTANTE: agora codegen está em compiler/codegen/
             cmd = [
                 sys.executable, "-m", "codegen.symplia_codegen",
                 str(json_file),
@@ -206,8 +210,9 @@ class SympliaCompiler:
                 cmd.append("-v")
             
             self.log(f"Comando: {' '.join(cmd)}")
+            self.log(f"Diretório de trabalho: {self.compiler_dir}")
             
-            # Executar codegen Python
+            # Executar codegen Python a partir do diretório compiler/
             result = subprocess.run(
                 cmd,
                 cwd=self.compiler_dir,
@@ -248,7 +253,7 @@ class SympliaCompiler:
             
             cmd = [
                 "clang", 
-                "-O2", 
+                "-O2",  # Otimização
                 str(llvm_file),
                 "-o", str(output_path)
             ]
@@ -291,9 +296,10 @@ class SympliaCompiler:
             
             output_path = Path(output_file).with_suffix('.s')
             
+            # Usar clang para gerar assembly
             cmd = [
                 "clang",
-                "-S", 
+                "-S",  # Gerar assembly
                 "-O2",
                 str(llvm_file),
                 "-o", str(output_path)
@@ -334,10 +340,12 @@ def main():
         description='Compilador Symplia - Compila arquivos .sym para executáveis',
         epilog='''
 Exemplos:
-  %(prog)s programa.sym                    # Compila para executável
-  %(prog)s programa.sym -o meu_programa    # Nome personalizado
-  %(prog)s programa.sym --target llvm-ir   # Gera apenas LLVM IR
-  %(prog)s programa.sym -v                 # Modo verboso
+  %(prog)s programas/exemplo.sym              # Compila para executável
+  %(prog)s exemplo.sym -o meu_programa        # Nome personalizado  
+  %(prog)s exemplo.sym --target llvm-ir       # Gera apenas LLVM IR
+  %(prog)s exemplo.sym -v                     # Modo verboso
+
+💡 Dica: Crie uma pasta 'programas/' para organizar seus arquivos .sym
         '''
     )
     
@@ -385,7 +393,6 @@ Exemplos:
     
     args = parser.parse_args()
     
-    # Um banner bem legal
     print("=== 🚀 Compilador Symplia ===")
     print(f"Arquivo: {args.source_file}")
     print(f"Target: {args.target}")
@@ -401,7 +408,6 @@ Exemplos:
         target=args.target
     )
     
-    # Status final
     if success:
         print("✅ Compilação bem-sucedida!")
     else:

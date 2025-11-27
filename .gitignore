@@ -2,3 +2,4 @@ notas.md
 Cargo.lock
 *target/
 my_env/
+*__pycache__
