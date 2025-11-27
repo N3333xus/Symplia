@@ -2,7 +2,7 @@
 
 use serde::{Serialize, Deserialize};
 use crate::parser::ast::*;
-use crate::semantic::{SemanticAnalysisResult, AnnotatedExpr, AnnotatedStatement};
+use crate::semantic::semantic::{SemanticAnalysisResult, AnnotatedExpr, AnnotatedStatement};
 use std::fs;
 use chrono::Utc;
 
@@ -129,7 +129,13 @@ impl From<&CallExpr> for SerializableCallExpr {
     fn from(call: &CallExpr) -> Self {
         SerializableCallExpr {
             function: call.function.clone(),
-            arguments: call.arguments.iter().map(SerializableExpr::from).collect(),
+            arguments: call.arguments.iter().map(|_expr| {
+                // Aqui usamos placeholders até o estágio semântico fornecer AnnotatedExpr
+                SerializableExpr::Literal {
+                    value: SerializableLiteral::Inteiro(0),
+                    expr_type: SerializableType::Inteiro,
+                }
+            }).collect(),
         }
     }
 }
@@ -177,7 +183,7 @@ impl From<&AnnotatedExpr> for SerializableExpr {
                 call: SerializableCallExpr::from(call_expr),
                 expr_type: SerializableType::from(&annotated.type_),
             },
-            Expr::BinaryOp(op, left, right) => {
+            Expr::BinaryOp(op, _left, _right) => {
                 // Para operações binárias, precisamos criar versões anotadas dos operandos
                 // Como não temos as anotações dos filhos, usaremos Type::Inteiro como fallback
                 // Isso será corrigido quando integrarmos com a análise semântica
@@ -194,7 +200,7 @@ impl From<&AnnotatedExpr> for SerializableExpr {
                     expr_type: SerializableType::from(&annotated.type_),
                 }
             }
-            Expr::UnaryOp(op, operand) => SerializableExpr::UnaryOp {
+            Expr::UnaryOp(op, _operand) => SerializableExpr::UnaryOp {
                 op: SerializableUnaryOperator::from(op),
                 operand: Box::new(SerializableExpr::Literal {
                     value: SerializableLiteral::Inteiro(0), // Placeholder
@@ -252,7 +258,7 @@ impl From<&VariableDecl> for SerializableVariableDecl {
         SerializableVariableDecl {
             var_type: SerializableType::from(&decl.var_type),
             name: decl.name.clone(),
-            initializer: decl.initializer.as_ref().map(|expr| {
+            initializer: decl.initializer.as_ref().map(|_expr| {
                 // Placeholder - será substituído pelas anotações reais
                 SerializableExpr::Literal {
                     value: SerializableLiteral::Inteiro(0),
@@ -339,7 +345,7 @@ pub struct SerializableReturnStmt {
 impl From<&ReturnStmt> for SerializableReturnStmt {
     fn from(stmt: &ReturnStmt) -> Self {
         SerializableReturnStmt {
-            value: stmt.value.as_ref().map(|expr| {
+            value: stmt.value.as_ref().map(|_expr| {
                 SerializableExpr::Literal {
                     value: SerializableLiteral::Inteiro(0), // Placeholder
                     expr_type: SerializableType::Inteiro,
@@ -357,7 +363,7 @@ pub struct SerializableWriteStmt {
 impl From<&WriteStmt> for SerializableWriteStmt {
     fn from(stmt: &WriteStmt) -> Self {
         SerializableWriteStmt {
-            arguments: stmt.arguments.iter().map(|expr| {
+            arguments: stmt.arguments.iter().map(|_expr| {
                 SerializableExpr::Literal {
                     value: SerializableLiteral::Texto("".to_string()), // Placeholder
                     expr_type: SerializableType::Texto,
@@ -373,7 +379,7 @@ pub struct SerializableReadStmt {
 }
 
 impl From<&ReadStmt> for SerializableReadStmt {
-    fn from(stmt: &ReadStmt) -> Self {
+    fn from(_stmt: &ReadStmt) -> Self {
         SerializableReadStmt {
             target: SerializableExpr::Variable {
                 name: "placeholder".to_string(), // Placeholder
@@ -402,7 +408,7 @@ impl From<&Statement> for SerializableStatement {
             Statement::VariableDecl(decl) => {
                 SerializableStatement::VariableDecl(SerializableVariableDecl::from(decl))
             }
-            Statement::ExprStmt(expr_stmt) => {
+            Statement::ExprStmt(_expr_stmt) => {
                 SerializableStatement::ExprStmt(SerializableExprStmt {
                     expr: SerializableExpr::Literal {
                         value: SerializableLiteral::Inteiro(0), // Placeholder
@@ -440,7 +446,7 @@ impl From<&AnnotatedStatement> for SerializableStatement {
                 SerializableStatement::VariableDecl(SerializableVariableDecl {
                     var_type: SerializableType::from(&decl.var_type),
                     name: decl.name.clone(),
-                    initializer: decl.initializer.as_ref().map(|expr| {
+                    initializer: decl.initializer.as_ref().map(|_expr| {
                         // Buscar a anotação correspondente
                         if let Some(annotated_expr) = annotated.expr_annotations.get(0) {
                             SerializableExpr::from(annotated_expr)
@@ -454,7 +460,7 @@ impl From<&AnnotatedStatement> for SerializableStatement {
                     }),
                 })
             }
-            Statement::ExprStmt(expr_stmt) => {
+            Statement::ExprStmt(_expr_stmt) => {
                 if let Some(annotated_expr) = annotated.expr_annotations.get(0) {
                     SerializableStatement::ExprStmt(SerializableExprStmt {
                         expr: SerializableExpr::from(annotated_expr),
