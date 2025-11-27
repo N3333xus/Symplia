@@ -4,3 +4,4 @@ Cargo.lock
 my_env/
 *__pycache__
 *.json
+diagnose.py
