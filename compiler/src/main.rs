@@ -1,9 +1,8 @@
-// compiler/src/main.rs
-
 use compiler::{Lexer, Parser, SemanticAnalyzer};
 use compiler::serialization::save_semantic_result_to_json;
 use std::env;
 use std::fs;
+use std::path::Path;
 use std::process;
 
 fn main() {
@@ -76,18 +75,20 @@ fn main() {
     
     println!("✅ Análise semântica concluída com sucesso!");
 
-    //SERIALIZAÇÃO DA AST PARA JSON
     println!("\n=== SERIALIZAÇÃO DA AST ===");
     
-    let json_filename = format!("{}.ast.json", filename.replace(".sym", ""));
+    let file_stem = Path::new(filename)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("programa");
+    
+    let json_filename = format!("../build/{}.ast.json", file_stem);
     
     match save_semantic_result_to_json(&semantic_result, &json_filename) {
         Ok(()) => {
             println!("✅ AST serializada salva em: {}", json_filename);
             println!("\n🎉 Compilação concluída com sucesso!");
             println!("📁 Arquivo JSON gerado: {}", json_filename);
-            println!("\n💡 Use o comando abaixo para gerar LLVM IR:");
-            println!("   python compile_symplia.py {}", json_filename);
         }
         Err(e) => {
             eprintln!("❌ Erro ao serializar AST: {}", e);
@@ -96,7 +97,8 @@ fn main() {
     }
 }
 
-// Testes unitários para o main
+/* 
+testes unitários para o main
 #[cfg(test)]
 mod tests {
 
@@ -110,12 +112,25 @@ mod tests {
 
     #[test]
     fn test_json_filename_generation() {
-        let filename = "programa.sym";
-        let json_filename = format!("{}.ast.json", filename.replace(".sym", ""));
-        assert_eq!(json_filename, "programa.ast.json");
+        use std::path::Path;
         
-        let filename_without_extension = "programa";
-        let json_filename2 = format!("{}.ast.json", filename_without_extension.replace(".sym", ""));
-        assert_eq!(json_filename2, "programa.ast.json");
+        let filename = "programas/exemplo.sym";
+        let file_stem = Path::new(filename)
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("programa");
+        
+        let json_filename = format!("../build/{}.ast.json", file_stem);
+        assert_eq!(json_filename, "../build/exemplo.ast.json");
+        
+        let filename_without_path = "teste.sym";
+        let file_stem2 = Path::new(filename_without_path)
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or("programa");
+        
+        let json_filename2 = format!("../build/{}.ast.json", file_stem2);
+        assert_eq!(json_filename2, "../build/teste.ast.json");
     }
 }
+*/

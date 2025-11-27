@@ -5,3 +5,5 @@ my_env/
 *__pycache__
 *.json
 diagnose.py
+build/
+notas.txt

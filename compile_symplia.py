@@ -17,14 +17,16 @@ class SympliaCompiler:
     def __init__(self, verbose: bool = False, keep_temp: bool = False):
         self.verbose = verbose
         self.keep_temp = keep_temp
-        self.temp_dir = None
         self.errors = []
         
         self.project_root = Path(__file__).parent
         self.compiler_dir = self.project_root / "compiler"      # Código Rust
         self.codegen_dir = self.compiler_dir / "codegen"        # Código Python
         self.programas_dir = self.project_root / "programas"    # Programas .sym
+        self.build_dir = self.project_root / "build"            # diretório de build
         
+        self.build_dir.mkdir(exist_ok=True)
+
         self._validate_project_structure()
     
     def _validate_project_structure(self):
@@ -94,7 +96,6 @@ class SympliaCompiler:
                 optimize: bool = False, target: str = "executable") -> bool:
         """Compila um arquivo .sym para o target especificado"""
         try:
-            # Encontrar o arquivo fonte
             source_path = self._find_source_file(source_file)
             if source_path is None:
                 self.error(f"Arquivo fonte não encontrado: {source_file}")
@@ -105,28 +106,26 @@ class SympliaCompiler:
                 self.error(f"Arquivo deve ter extensão .sym: {source_path}")
                 return False
             
-            if not self.keep_temp:
-                self.temp_dir = tempfile.mkdtemp(prefix="symplia_")
-                self.log(f"Diretório temporário criado: {self.temp_dir}")
-            else:
-                self.temp_dir = source_path.parent
-            
             base_name = source_path.stem
+            
+            json_file = self.build_dir / f"{base_name}.ast.json"
+            llvm_file = self.build_dir / f"{base_name}.ll"
+            
             if output_file is None:
                 output_file = base_name
             
-            json_file = Path(self.temp_dir) / f"{base_name}.ast.json"
-            llvm_file = Path(self.temp_dir) / f"{base_name}.ll"
+            final_output = self.build_dir / output_file
             
             self.log(f"Iniciando compilação de: {source_path}")
-            self.log(f"Arquivos temporários: {json_file}, {llvm_file}")
+            self.log(f"Arquivo AST JSON: {json_file}")
+            self.log(f"Arquivo LLVM IR: {llvm_file}")
             
-            # PASSO 1: Compilar com Rust (frontend)
+            # PASSO 1: Compilar com Rust (frontend) - gerar JSON na pasta build
             self.log("=== FASE 1: Frontend Rust (Análise) ===")
             if not self._run_rust_compiler(str(source_path), json_file):
                 return False
             
-            # PASSO 2: Gerar LLVM IR com Python (codegen)
+            # PASSO 2: Gerar LLVM IR com Python (codegen) - ler JSON da pasta build
             self.log("=== FASE 2: Backend Python (Geração de Código) ===")
             if not self._run_python_codegen(json_file, llvm_file, optimize):
                 return False
@@ -134,14 +133,14 @@ class SympliaCompiler:
             # PASSO 3: Compilar para target final
             self.log("=== FASE 3: Geração do Target Final ===")
             if target == "executable":
-                return self._generate_executable(llvm_file, output_file)
+                return self._generate_executable(llvm_file, str(final_output))
             elif target == "llvm-ir":
-                final_ll_file = Path(output_file).with_suffix('.ll')
+                final_ll_file = final_output.with_suffix('.ll')
                 shutil.copy2(llvm_file, final_ll_file)
-                self.log(f"Arquivo LLVM IR salvo: {final_ll_file}")
+                self.log(f"✅ Arquivo LLVM IR salvo: {final_ll_file}")
                 return True
             elif target == "assembly":
-                return self._generate_assembly(llvm_file, output_file)
+                return self._generate_assembly(llvm_file, str(final_output))
             else:
                 self.error(f"Target não suportado: {target}")
                 return False
@@ -154,16 +153,27 @@ class SympliaCompiler:
             return False
         
         finally:
-            if not self.keep_temp and self.temp_dir and Path(self.temp_dir).exists():
-                self.log(f"Limpando diretório temporário: {self.temp_dir}")
-                shutil.rmtree(self.temp_dir)
+            # Limpar arquivos intermediários se não for keep_temp
+            if not self.keep_temp:
+                self._cleanup_intermediate_files(json_file, llvm_file)
+    
+    def _cleanup_intermediate_files(self, json_file: Path, llvm_file: Path):
+        """Remove arquivos intermediários da pasta build se existirem"""
+        try:
+            if json_file.exists():
+                self.log(f"Removendo arquivo intermediário: {json_file}")
+                json_file.unlink()
+            if llvm_file.exists():
+                self.log(f"Removendo arquivo intermediário: {llvm_file}")
+                llvm_file.unlink()
+        except Exception as e:
+            self.log(f"AVISO: Não foi possível remover alguns arquivos intermediários: {e}")
     
     def _run_rust_compiler(self, source_file: str, json_output: Path) -> bool:
         """Executa o compilador Rust para análise do código fonte"""
         try:
             self.log("Executando compilador Rust...")
             
-            # Converter o caminho do arquivo fonte para absoluto
             source_path = Path(source_file)
             if not source_path.is_absolute():
                 source_path = source_path.absolute()
@@ -188,20 +198,24 @@ class SympliaCompiler:
                 env=env
             )
             
-            # O Rust gera o JSON no diretório atual (compiler/) com base no nome do arquivo
-            expected_json = self.compiler_dir / f"{source_path.stem}.ast.json"
-            
-            if expected_json.exists():
-                shutil.move(expected_json, json_output)
-                self.log(f"✅ Análise Rust concluída: {json_output}")
+            # verifica se o arquivo existe no local esperado
+            if json_output.exists():
+                self.log(f"Análise Rust concluída: {json_output}")
                 return True
             else:
+                # Mostrar erros do Rust se houver
                 if result.stderr:
-                    self.error(f"Rust compiler stderr: {result.stderr}")
+                    error_lines = result.stderr.strip().split('\n')
+                    for line in error_lines:
+                        if line.strip() and "Compiling" not in line and "Finished" not in line:
+                            self.error(f"Rust: {line}")
                 if result.stdout:
-                    self.log(f"Rust compiler stdout: {result.stdout}")
+                    output_lines = result.stdout.strip().split('\n')
+                    for line in output_lines:
+                        if line.strip() and "Compiling" not in line and "Finished" not in line:
+                            self.log(f"Rust: {line}")
                 
-                self.error("Compilador Rust não gerou arquivo JSON esperado")
+                self.error(f"Compilador Rust não gerou arquivo JSON esperado: {json_output}")
                 return False
                 
         except subprocess.CalledProcessError as e:
@@ -216,50 +230,45 @@ class SympliaCompiler:
             self.error(f"Erro inesperado no compilador Rust: {e}")
             return False
     
-    def _run_python_codegen(self, json_file: Path, llvm_output: Path, optimize: bool) -> bool:
+    def _run_python_codegen(self, json_file: Path, llvm_file: Path, optimize: bool) -> bool:
         """Executa o codegen Python para gerar LLVM IR"""
         try:
             self.log("Executando codegen Python...")
             
             cmd = [
-                sys.executable, "-m", "codegen.symplia_codegen",
+                sys.executable,
+                str(self.codegen_dir / "symplia_codegen.py"),
                 str(json_file),
-                "-o", str(llvm_output)
+                "-o", str(llvm_file)
             ]
             
             if optimize:
                 cmd.append("--optimize")
+            
             if self.verbose:
                 cmd.append("-v")
             
             self.log(f"Comando: {' '.join(cmd)}")
-            self.log(f"Diretório de trabalho: {self.compiler_dir}")
             
             result = subprocess.run(
                 cmd,
-                cwd=self.compiler_dir,
                 capture_output=True,
                 text=True
             )
             
             if result.returncode != 0:
                 if result.stderr:
-                    self.error(f"Python codegen stderr: {result.stderr}")
-                if result.stdout:
-                    self.log(f"Python codegen stdout: {result.stdout}")
-                self.error("Codegen Python falhou")
+                    self.error(f"Codegen Python stderr: {result.stderr}")
+                self.error("Falha no codegen Python")
                 return False
             
-            if not llvm_output.exists():
-                self.error(f"Codegen Python não gerou arquivo: {llvm_output}")
+            if llvm_file.exists():
+                self.log(f"Codegen Python concluído: {llvm_file}")
+                return True
+            else:
+                self.error(f"Codegen Python não gerou arquivo LLVM: {llvm_file}")
                 return False
-            
-            self.log(f"Codegen Python concluído: {llvm_output}")
-            return True
-            
-        except subprocess.CalledProcessError as e:
-            self.error(f"Erro na execução do codegen Python: {e}")
-            return False
+                
         except Exception as e:
             self.error(f"Erro inesperado no codegen Python: {e}")
             return False
@@ -400,7 +409,7 @@ Exemplos:
     parser.add_argument(
         '-k', '--keep-temp',
         action='store_true',
-        help='Mantém arquivos temporários (.ast.json, .ll)'
+        help='Mantém arquivos intermediários (.ast.json, .ll) na pasta build'
     )
     
     parser.add_argument(
