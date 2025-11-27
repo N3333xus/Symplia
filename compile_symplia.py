@@ -24,7 +24,7 @@ class SympliaCompiler:
         self.project_root = Path(__file__).parent
         self.compiler_dir = self.project_root / "compiler"      # Código Rust
         self.codegen_dir = self.compiler_dir / "codegen"        # Código Python
-        self.programas_dir = self.project_root / "programas"    # Programas usuário
+        self.programas_dir = self.project_root / "programas"    # Programas .sym
         
         self._validate_project_structure()
     

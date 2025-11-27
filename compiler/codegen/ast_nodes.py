@@ -361,7 +361,11 @@ class ASTDeserializer:
     @staticmethod
     def from_json_file(filename: str) -> SerializableProgram:
         """Desserializa a partir de um arquivo JSON"""
-        with open(filename, 'r', encoding='utf-8') as f:
+        file_path = Path(filename)
+        if not file_path.exists():
+            raise FileNotFoundError(f"Arquivo JSON não encontrado: {filename}")
+            
+        with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
         return ASTDeserializer._deserialize_program(data)
     

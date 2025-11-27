@@ -12,10 +12,13 @@ import traceback
 from pathlib import Path
 from typing import Optional
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+compiler_dir = Path(__file__).parent.parent
+if str(compiler_dir) not in sys.path:
+    sys.path.insert(0, str(compiler_dir))
 
-from ast_nodes import ASTDeserializer, SerializableProgram, print_ast_summary
-from llvm_builder import LLVMBuilder, generate_llvm_ir
+
+from codegen.ast_nodes import ASTDeserializer, SerializableProgram, print_ast_summary
+from codegen.llvm_builder import LLVMBuilder, generate_llvm_ir
 
 class SympliaCodeGen:
     
@@ -42,9 +45,11 @@ class SympliaCodeGen:
         try:
             self.log(f"Lendo arquivo JSON: {json_file}")
             
-            if not os.path.exists(json_file):
+            json_path = Path(json_file)
+            if not json_path.exists():
                 self.error(f"Arquivo não encontrado: {json_file}")
                 return False
+            
             
             self.log("Desserializando AST...")
             program = ASTDeserializer.from_json_file(json_file)
@@ -84,7 +89,6 @@ class SympliaCodeGen:
             return False
     
     def generate_from_json_string(self, json_str: str, module_name: str = "symplia_module") -> Optional[str]:
-        """Gera LLVM IR a partir de uma string JSON (para testes)"""
         try:
             self.log("Desserializando AST from string...")
             program = ASTDeserializer.from_json_string(json_str)

@@ -570,7 +570,7 @@ pub fn load_program_from_json(filename: &str) -> Result<SerializableProgram, Box
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::parser::ast::{Literal, Expr, Type, Block};
+    use crate::parser::ast::{Literal, /*Expr,*/ Type, /*Block*/};
 
     #[test]
     fn test_serialize_literal() {

@@ -1,12 +1,12 @@
 """
-LLVM IR Builder para compilador Symplia 
+LLVM IR Builder para o compilador Symplia 
 Gera LLVM IR a partir da AST desserializada usando llvmlite
 """
 
 from llvmlite import ir, binding
 from typing import List, Dict, Optional #, Union, Any
 from dataclasses import dataclass
-from .ast_nodes import (
+from codegen.ast_nodes import (
     SerializableProgram, SerializableFunction, SerializableStatement,
     SerializableExpr, SerializableType, SerializableBinaryOperator,
     SerializableUnaryOperator, SerializableLiteral, SerializableCallExpr,
