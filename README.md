@@ -1,4 +1,6 @@
 # Symplia 🇧🇷
+(Em Desenvolvimento)
+
 <img src="Logo/Symplia-Logo.png" alt="logo" width="250"/>
 
 ---
