@@ -157,7 +157,7 @@ class SympliaCompiler:
             if not self.keep_temp:
                 self._cleanup_intermediate_files(json_file, llvm_file)
     
-    '''def _cleanup_intermediate_files(self, json_file: Path, llvm_file: Path):
+    def _cleanup_intermediate_files(self, json_file: Path, llvm_file: Path):
         """Remove arquivos intermediários da pasta build se existirem"""
         try:
             if json_file.exists():
@@ -167,7 +167,7 @@ class SympliaCompiler:
                 self.log(f"Removendo arquivo intermediário: {llvm_file}")
                 llvm_file.unlink()
         except Exception as e:
-            self.log(f"AVISO: Não foi possível remover alguns arquivos intermediários: {e}")'''
+            self.log(f"AVISO: Não foi possível remover alguns arquivos intermediários: {e}")
     
     def _run_rust_compiler(self, source_file: str, json_output: Path) -> bool:
         """Executa o compilador Rust para análise do código fonte"""

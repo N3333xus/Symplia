@@ -12,7 +12,7 @@ funcao inteiro soma(inteiro a, inteiro b) {
 
 funcao inteiro principal() {
     inteiro x = 10;
-    inteiro y = 20;
+    inteiro y = 5;
     inteiro total = soma(x, y);
     
     escreva("A soma e:", total);

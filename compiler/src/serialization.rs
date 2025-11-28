@@ -1,5 +1,3 @@
-// compiler/src/serialization.rs
-
 use serde::{Serialize, Deserialize};
 use crate::parser::ast::*;
 use crate::semantic::semantic::{SemanticAnalysisResult, AnnotatedExpr, AnnotatedStatement};
@@ -129,12 +127,7 @@ impl From<&CallExpr> for SerializableCallExpr {
     fn from(call: &CallExpr) -> Self {
         SerializableCallExpr {
             function: call.function.clone(),
-            arguments: call.arguments.iter().map(|_expr| {
-                SerializableExpr::Literal {
-                    value: SerializableLiteral::Inteiro(0),
-                    expr_type: SerializableType::Inteiro,
-                }
-            }).collect(),
+            arguments: call.arguments.iter().map(|expr| SerializableExpr::from_expr(expr)).collect(),
         }
     }
 }
@@ -167,44 +160,67 @@ pub enum SerializableExpr {
     },
 }
 
-impl From<&AnnotatedExpr> for SerializableExpr {
-    fn from(annotated: &AnnotatedExpr) -> Self {
-        match &annotated.expr {
+impl SerializableExpr {
+    pub fn from_expr(expr: &Expr) -> Self {
+        match expr {
             Expr::Literal(literal) => SerializableExpr::Literal {
                 value: SerializableLiteral::from(literal),
-                expr_type: SerializableType::from(&annotated.type_),
+                expr_type: match literal {
+                    Literal::Inteiro(_) => SerializableType::Inteiro,
+                    Literal::Decimal(_) => SerializableType::Decimal,
+                    Literal::Texto(_) => SerializableType::Texto,
+                    Literal::Logico(_) => SerializableType::Logico,
+                },
             },
             Expr::Variable(name) => SerializableExpr::Variable {
                 name: name.clone(),
-                expr_type: SerializableType::from(&annotated.type_),
+                expr_type: SerializableType::Inteiro, // Tipo padrão
             },
             Expr::Call(call_expr) => SerializableExpr::Call {
                 call: SerializableCallExpr::from(call_expr),
+                expr_type: SerializableType::Inteiro, // Tipo padrão
+            },
+            Expr::BinaryOp(op, left, right) => SerializableExpr::BinaryOp {
+                op: SerializableBinaryOperator::from(op),
+                left: Box::new(Self::from_expr(left)),
+                right: Box::new(Self::from_expr(right)),
+                expr_type: SerializableType::Inteiro, // Tipo padrão
+            },
+            Expr::UnaryOp(op, operand) => SerializableExpr::UnaryOp {
+                op: SerializableUnaryOperator::from(op),
+                operand: Box::new(Self::from_expr(operand)),
+                expr_type: SerializableType::Inteiro, // Tipo padrão
+            },
+        }
+    }
+}
+
+impl From<&AnnotatedExpr> for SerializableExpr {
+    fn from(annotated: &AnnotatedExpr) -> Self {
+        let base_expr = Self::from_expr(&annotated.expr);
+        
+        match base_expr {
+            SerializableExpr::Literal { value, .. } => SerializableExpr::Literal {
+                value,
                 expr_type: SerializableType::from(&annotated.type_),
             },
-            Expr::BinaryOp(op, _left, _right) => {
-                // Para operações binárias, precisamos criar versões anotadas dos operandos
-                // Como não temos as anotações dos filhos, usaremos Type::Inteiro como fallback
-                // Isso será corrigido quando integrarmos com a análise semântica
-                SerializableExpr::BinaryOp {
-                    op: SerializableBinaryOperator::from(op),
-                    left: Box::new(SerializableExpr::Literal {
-                        value: SerializableLiteral::Inteiro(0), // Placeholder
-                        expr_type: SerializableType::Inteiro,
-                    }),
-                    right: Box::new(SerializableExpr::Literal {
-                        value: SerializableLiteral::Inteiro(0), // Placeholder
-                        expr_type: SerializableType::Inteiro,
-                    }),
-                    expr_type: SerializableType::from(&annotated.type_),
-                }
-            }
-            Expr::UnaryOp(op, _operand) => SerializableExpr::UnaryOp {
-                op: SerializableUnaryOperator::from(op),
-                operand: Box::new(SerializableExpr::Literal {
-                    value: SerializableLiteral::Inteiro(0), // Placeholder
-                    expr_type: SerializableType::Inteiro,
-                }),
+            SerializableExpr::Variable { name, .. } => SerializableExpr::Variable {
+                name,
+                expr_type: SerializableType::from(&annotated.type_),
+            },
+            SerializableExpr::Call { call, .. } => SerializableExpr::Call {
+                call,
+                expr_type: SerializableType::from(&annotated.type_),
+            },
+            SerializableExpr::BinaryOp { op, left, right, .. } => SerializableExpr::BinaryOp {
+                op,
+                left,
+                right,
+                expr_type: SerializableType::from(&annotated.type_),
+            },
+            SerializableExpr::UnaryOp { op, operand, .. } => SerializableExpr::UnaryOp {
+                op,
+                operand,
                 expr_type: SerializableType::from(&annotated.type_),
             },
         }
@@ -238,7 +254,7 @@ pub struct SerializableBlock {
 impl From<&Block> for SerializableBlock {
     fn from(block: &Block) -> Self {
         SerializableBlock {
-            statements: block.statements.iter().map(SerializableStatement::from).collect(),
+            statements: block.statements.iter().map(SerializableStatement::from_stmt).collect(),
         }
     }
 }
@@ -257,13 +273,27 @@ impl From<&VariableDecl> for SerializableVariableDecl {
         SerializableVariableDecl {
             var_type: SerializableType::from(&decl.var_type),
             name: decl.name.clone(),
-            initializer: decl.initializer.as_ref().map(|_expr| {
-                // Placeholder - será substituído pelas anotações reais
-                SerializableExpr::Literal {
-                    value: SerializableLiteral::Inteiro(0),
-                    expr_type: SerializableType::from(&decl.var_type),
-                }
-            }),
+            initializer: decl.initializer.as_ref().map(SerializableExpr::from_expr),
+        }
+    }
+}
+
+impl From<&AnnotatedStatement> for SerializableVariableDecl {
+    fn from(annotated: &AnnotatedStatement) -> Self {
+        if let Statement::VariableDecl(decl) = &annotated.statement {
+            let initializer = if let Some(expr_annotation) = annotated.expr_annotations.get(0) {
+                Some(SerializableExpr::from(expr_annotation))
+            } else {
+                decl.initializer.as_ref().map(SerializableExpr::from_expr)
+            };
+            
+            SerializableVariableDecl {
+                var_type: SerializableType::from(&decl.var_type),
+                name: decl.name.clone(),
+                initializer,
+            }
+        } else {
+            panic!("Expected VariableDecl statement");
         }
     }
 }
@@ -283,12 +313,29 @@ pub struct SerializableIfStmt {
 impl From<&IfStmt> for SerializableIfStmt {
     fn from(stmt: &IfStmt) -> Self {
         SerializableIfStmt {
-            condition: SerializableExpr::Literal {
-                value: SerializableLiteral::Logico(true), // Placeholder
-                expr_type: SerializableType::Logico,
-            },
+            condition: SerializableExpr::from_expr(&stmt.condition),
             then_branch: SerializableBlock::from(&stmt.then_branch),
             else_branch: stmt.else_branch.as_ref().map(SerializableBlock::from),
+        }
+    }
+}
+
+impl From<&AnnotatedStatement> for SerializableIfStmt {
+    fn from(annotated: &AnnotatedStatement) -> Self {
+        if let Statement::IfStmt(if_stmt) = &annotated.statement {
+            let condition = if let Some(expr_annotation) = annotated.expr_annotations.get(0) {
+                SerializableExpr::from(expr_annotation)
+            } else {
+                SerializableExpr::from_expr(&if_stmt.condition)
+            };
+            
+            SerializableIfStmt {
+                condition,
+                then_branch: SerializableBlock::from(&if_stmt.then_branch),
+                else_branch: if_stmt.else_branch.as_ref().map(SerializableBlock::from),
+            }
+        } else {
+            panic!("Expected IfStmt statement");
         }
     }
 }
@@ -302,11 +349,27 @@ pub struct SerializableWhileStmt {
 impl From<&WhileStmt> for SerializableWhileStmt {
     fn from(stmt: &WhileStmt) -> Self {
         SerializableWhileStmt {
-            condition: SerializableExpr::Literal {
-                value: SerializableLiteral::Logico(true), // Placeholder
-                expr_type: SerializableType::Logico,
-            },
+            condition: SerializableExpr::from_expr(&stmt.condition),
             body: SerializableBlock::from(&stmt.body),
+        }
+    }
+}
+
+impl From<&AnnotatedStatement> for SerializableWhileStmt {
+    fn from(annotated: &AnnotatedStatement) -> Self {
+        if let Statement::WhileStmt(while_stmt) = &annotated.statement {
+            let condition = if let Some(expr_annotation) = annotated.expr_annotations.get(0) {
+                SerializableExpr::from(expr_annotation)
+            } else {
+                SerializableExpr::from_expr(&while_stmt.condition)
+            };
+            
+            SerializableWhileStmt {
+                condition,
+                body: SerializableBlock::from(&while_stmt.body),
+            }
+        } else {
+            panic!("Expected WhileStmt statement");
         }
     }
 }
@@ -323,15 +386,36 @@ impl From<&ForStmt> for SerializableForStmt {
     fn from(stmt: &ForStmt) -> Self {
         SerializableForStmt {
             variable: stmt.variable.clone(),
-            start: SerializableExpr::Literal {
-                value: SerializableLiteral::Inteiro(0), // Placeholder
-                expr_type: SerializableType::Inteiro,
-            },
-            end: SerializableExpr::Literal {
-                value: SerializableLiteral::Inteiro(0), // Placeholder
-                expr_type: SerializableType::Inteiro,
-            },
+            start: SerializableExpr::from_expr(&stmt.start),
+            end: SerializableExpr::from_expr(&stmt.end),
             body: SerializableBlock::from(&stmt.body),
+        }
+    }
+}
+
+impl From<&AnnotatedStatement> for SerializableForStmt {
+    fn from(annotated: &AnnotatedStatement) -> Self {
+        if let Statement::ForStmt(for_stmt) = &annotated.statement {
+            let start = if let Some(expr_annotation) = annotated.expr_annotations.get(0) {
+                SerializableExpr::from(expr_annotation)
+            } else {
+                SerializableExpr::from_expr(&for_stmt.start)
+            };
+            
+            let end = if let Some(expr_annotation) = annotated.expr_annotations.get(1) {
+                SerializableExpr::from(expr_annotation)
+            } else {
+                SerializableExpr::from_expr(&for_stmt.end)
+            };
+            
+            SerializableForStmt {
+                variable: for_stmt.variable.clone(),
+                start,
+                end,
+                body: SerializableBlock::from(&for_stmt.body),
+            }
+        } else {
+            panic!("Expected ForStmt statement");
         }
     }
 }
@@ -344,12 +428,26 @@ pub struct SerializableReturnStmt {
 impl From<&ReturnStmt> for SerializableReturnStmt {
     fn from(stmt: &ReturnStmt) -> Self {
         SerializableReturnStmt {
-            value: stmt.value.as_ref().map(|_expr| {
-                SerializableExpr::Literal {
-                    value: SerializableLiteral::Inteiro(0), // Placeholder
-                    expr_type: SerializableType::Inteiro,
-                }
-            }),
+            value: stmt.value.as_ref().map(SerializableExpr::from_expr),
+        }
+    }
+}
+
+// CORREÇÃO: Implementação simplificada para ReturnStmt anotado
+impl From<&AnnotatedStatement> for SerializableReturnStmt {
+    fn from(annotated: &AnnotatedStatement) -> Self {
+        if let Statement::ReturnStmt(return_stmt) = &annotated.statement {
+            let value = if let Some(expr_annotation) = annotated.expr_annotations.get(0) {
+                Some(SerializableExpr::from(expr_annotation))
+            } else {
+                return_stmt.value.as_ref().map(SerializableExpr::from_expr)
+            };
+            
+            SerializableReturnStmt {
+                value,
+            }
+        } else {
+            panic!("Expected ReturnStmt statement");
         }
     }
 }
@@ -362,12 +460,25 @@ pub struct SerializableWriteStmt {
 impl From<&WriteStmt> for SerializableWriteStmt {
     fn from(stmt: &WriteStmt) -> Self {
         SerializableWriteStmt {
-            arguments: stmt.arguments.iter().map(|_expr| {
-                SerializableExpr::Literal {
-                    value: SerializableLiteral::Texto("".to_string()), // Placeholder
-                    expr_type: SerializableType::Texto,
-                }
-            }).collect(),
+            arguments: stmt.arguments.iter().map(SerializableExpr::from_expr).collect(),
+        }
+    }
+}
+
+impl From<&AnnotatedStatement> for SerializableWriteStmt {
+    fn from(annotated: &AnnotatedStatement) -> Self {
+        if let Statement::WriteStmt(write_stmt) = &annotated.statement {
+            let arguments = if !annotated.expr_annotations.is_empty() {
+                annotated.expr_annotations.iter().map(SerializableExpr::from).collect()
+            } else {
+                write_stmt.arguments.iter().map(SerializableExpr::from_expr).collect()
+            };
+            
+            SerializableWriteStmt {
+                arguments,
+            }
+        } else {
+            panic!("Expected WriteStmt statement");
         }
     }
 }
@@ -378,12 +489,27 @@ pub struct SerializableReadStmt {
 }
 
 impl From<&ReadStmt> for SerializableReadStmt {
-    fn from(_stmt: &ReadStmt) -> Self {
+    fn from(stmt: &ReadStmt) -> Self {
         SerializableReadStmt {
-            target: SerializableExpr::Variable {
-                name: "placeholder".to_string(), // Placeholder
-                expr_type: SerializableType::Inteiro,
-            },
+            target: SerializableExpr::from_expr(&stmt.target),
+        }
+    }
+}
+
+impl From<&AnnotatedStatement> for SerializableReadStmt {
+    fn from(annotated: &AnnotatedStatement) -> Self {
+        if let Statement::ReadStmt(read_stmt) = &annotated.statement {
+            let target = if let Some(expr_annotation) = annotated.expr_annotations.get(0) {
+                SerializableExpr::from(expr_annotation)
+            } else {
+                SerializableExpr::from_expr(&read_stmt.target)
+            };
+            
+            SerializableReadStmt {
+                target,
+            }
+        } else {
+            panic!("Expected ReadStmt statement");
         }
     }
 }
@@ -401,18 +527,15 @@ pub enum SerializableStatement {
     ReadStmt(SerializableReadStmt),
 }
 
-impl From<&Statement> for SerializableStatement {
-    fn from(stmt: &Statement) -> Self {
+impl SerializableStatement {
+    pub fn from_stmt(stmt: &Statement) -> Self {
         match stmt {
             Statement::VariableDecl(decl) => {
                 SerializableStatement::VariableDecl(SerializableVariableDecl::from(decl))
             }
-            Statement::ExprStmt(_expr_stmt) => {
+            Statement::ExprStmt(expr_stmt) => {
                 SerializableStatement::ExprStmt(SerializableExprStmt {
-                    expr: SerializableExpr::Literal {
-                        value: SerializableLiteral::Inteiro(0), // Placeholder
-                        expr_type: SerializableType::Inteiro,
-                    },
+                    expr: SerializableExpr::from_expr(&expr_stmt.expr),
                 })
             }
             Statement::IfStmt(if_stmt) => {
@@ -437,44 +560,46 @@ impl From<&Statement> for SerializableStatement {
     }
 }
 
+impl From<&Statement> for SerializableStatement {
+    fn from(stmt: &Statement) -> Self {
+        SerializableStatement::from_stmt(stmt)
+    }
+}
+
+// CORREÇÃO: Implementação simplificada para AnnotatedStatement
 impl From<&AnnotatedStatement> for SerializableStatement {
     fn from(annotated: &AnnotatedStatement) -> Self {
-        // Usa as anotações reais da análise semântica
         match &annotated.statement {
-            Statement::VariableDecl(decl) => {
-                SerializableStatement::VariableDecl(SerializableVariableDecl {
-                    var_type: SerializableType::from(&decl.var_type),
-                    name: decl.name.clone(),
-                    initializer: decl.initializer.as_ref().map(|_expr| {
-                        // Buscar a anotação correspondente
-                        if let Some(annotated_expr) = annotated.expr_annotations.get(0) {
-                            SerializableExpr::from(annotated_expr)
-                        } else {
-                            // Fallback
-                            SerializableExpr::Literal {
-                                value: SerializableLiteral::Inteiro(0),
-                                expr_type: SerializableType::from(&decl.var_type),
-                            }
-                        }
-                    }),
-                })
+            Statement::VariableDecl(_) => {
+                SerializableStatement::VariableDecl(SerializableVariableDecl::from(annotated))
             }
-            Statement::ExprStmt(_expr_stmt) => {
+            Statement::ExprStmt(_) => {
                 if let Some(annotated_expr) = annotated.expr_annotations.get(0) {
                     SerializableStatement::ExprStmt(SerializableExprStmt {
                         expr: SerializableExpr::from(annotated_expr),
                     })
                 } else {
-                    SerializableStatement::ExprStmt(SerializableExprStmt {
-                        expr: SerializableExpr::Literal {
-                            value: SerializableLiteral::Inteiro(0),
-                            expr_type: SerializableType::Inteiro,
-                        },
-                    })
+                    Self::from_stmt(&annotated.statement)
                 }
             }
-            // Implementar outros statements de forma similar...
-            _ => SerializableStatement::from(&annotated.statement),
+            Statement::IfStmt(_) => {
+                SerializableStatement::IfStmt(SerializableIfStmt::from(annotated))
+            }
+            Statement::WhileStmt(_) => {
+                SerializableStatement::WhileStmt(SerializableWhileStmt::from(annotated))
+            }
+            Statement::ForStmt(_) => {
+                SerializableStatement::ForStmt(SerializableForStmt::from(annotated))
+            }
+            Statement::ReturnStmt(_) => {
+                SerializableStatement::ReturnStmt(SerializableReturnStmt::from(annotated))
+            }
+            Statement::WriteStmt(_) => {
+                SerializableStatement::WriteStmt(SerializableWriteStmt::from(annotated))
+            }
+            Statement::ReadStmt(_) => {
+                SerializableStatement::ReadStmt(SerializableReadStmt::from(annotated))
+            }
         }
     }
 }
@@ -513,7 +638,7 @@ impl From<&Program> for SerializableProgram {
     fn from(program: &Program) -> Self {
         SerializableProgram {
             functions: program.functions.iter().map(SerializableFunction::from).collect(),
-            global_statements: program.statements.iter().map(SerializableStatement::from).collect(),
+            global_statements: program.statements.iter().map(SerializableStatement::from_stmt).collect(),
             metadata: ProgramMetadata {
                 source_file: "unknown".to_string(),
                 timestamp: Utc::now().to_rfc3339(),
@@ -526,15 +651,14 @@ impl From<&Program> for SerializableProgram {
 
 impl From<&SemanticAnalysisResult> for SerializableProgram {
     fn from(result: &SemanticAnalysisResult) -> Self {
-        // Converte a AST anotada do resultado semântico
         SerializableProgram {
             functions: result.annotated_ast.functions.iter().map(SerializableFunction::from).collect(),
             global_statements: result.annotated_ast.statements.iter().map(SerializableStatement::from).collect(),
             metadata: ProgramMetadata {
-                source_file: "unknown".to_string(),
+                source_file: "unknown".to_string(), 
                 timestamp: Utc::now().to_rfc3339(),
                 version: env!("CARGO_PKG_VERSION").to_string(),
-                entry_point: Some("main".to_string()),
+                entry_point: Some("principal".to_string()),
             },
         }
     }
@@ -570,7 +694,7 @@ pub fn load_program_from_json(filename: &str) -> Result<SerializableProgram, Box
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::parser::ast::{Literal, /*Expr,*/ Type, /*Block*/};
+    use crate::parser::ast::{Literal, Type};
 
     #[test]
     fn test_serialize_literal() {
