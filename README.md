@@ -1,5 +1,5 @@
 # Symplia 🇧🇷
-<img src="Logo/banner-sym.png" alt="Texto Alternativo" width="400"/>
+<img src="Logo/Symplia-Logo.png" alt="logo" width="250"/>
 
 ---
 *Symplia* é uma linguagem de programação educacional de alto nível, projetada com um único propósito: **ser a primeira linguagem de um programador.** Ela age como uma ponte suave entre o pensamento lógico e os conceitos fundamentais da programação.
