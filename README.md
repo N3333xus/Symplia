@@ -1,8 +1,9 @@
 # Symplia 🇧🇷
-(Em Desenvolvimento)
+Em desenvolvimento
 
-<img src="Logo/Symplia-Logo.png" alt="logo" width="250"/>
+<img src="Logo/Symplia-Logo.png" alt="logo" width="250"/> 
 
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ---
 *Symplia* é uma linguagem de programação educacional de alto nível, projetada com um único propósito: **ser a primeira linguagem de um programador.** Ela age como uma ponte suave entre o pensamento lógico e os conceitos fundamentais da programação.
 
